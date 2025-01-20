@@ -1,0 +1,6 @@
+@KelBurgAPI_HostAddress = http://localhost:5266
+
+GET {{KelBurgAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

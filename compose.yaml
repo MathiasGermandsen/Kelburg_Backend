@@ -1,0 +1,6 @@
+﻿services:
+  kelburgapi:
+    image: kelburgapi
+    build:
+      context: .
+      dockerfile: KelBurgAPI/Dockerfile

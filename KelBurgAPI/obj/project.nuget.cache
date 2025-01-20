@@ -1,0 +1,38 @@
+{
+  "version": 2,
+  "dgSpecHash": "WVvV9zz6rdI=",
+  "success": false,
+  "projectFilePath": "/Users/mathias.germandsen/RiderProjects/KelBurgAPI/KelBurgAPI/KelBurgAPI.csproj",
+  "expectedPackageFiles": [
+    "/Users/mathias.germandsen/.nuget/packages/microsoft.extensions.apidescription.server/6.0.5/microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
+    "/Users/mathias.germandsen/.nuget/packages/microsoft.openapi/1.6.14/microsoft.openapi.1.6.14.nupkg.sha512",
+    "/Users/mathias.germandsen/.nuget/packages/swashbuckle.aspnetcore/6.6.2/swashbuckle.aspnetcore.6.6.2.nupkg.sha512",
+    "/Users/mathias.germandsen/.nuget/packages/swashbuckle.aspnetcore.swagger/6.6.2/swashbuckle.aspnetcore.swagger.6.6.2.nupkg.sha512",
+    "/Users/mathias.germandsen/.nuget/packages/swashbuckle.aspnetcore.swaggergen/6.6.2/swashbuckle.aspnetcore.swaggergen.6.6.2.nupkg.sha512",
+    "/Users/mathias.germandsen/.nuget/packages/swashbuckle.aspnetcore.swaggerui/6.6.2/swashbuckle.aspnetcore.swaggerui.6.6.2.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1801",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Unable to load the service index for source https://api.nuget.org/v3/index.json.",
+      "libraryId": "Microsoft.AspNetCore.OpenApi"
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "Unable to find package Microsoft.AspNetCore.OpenApi. No packages exist with this id in source(s): nuget.org",
+      "libraryId": "Microsoft.AspNetCore.OpenApi",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json."
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 ﻿namespace KelBurgAPI.Models;
 
-public class Booking : Common
+public class Bookings : Common
 {
     public int PeopleCount { get; set; }
     public int BookingPrice { get; set; }
@@ -10,7 +10,7 @@ public class Booking : Common
     public bool Breakfast { get; set; }
     public bool AllInclusive { get; set; }
 
-    public int CalculateBookingPrice(Booking currentBooking, Rooms selectedRoom, List<ServicePricesDict> priceDict)
+    public int CalculateBookingPrice(Bookings currentBookings, Rooms selectedRoom, List<ServicePricesDict> priceDict)
     {
         int bookingPrice = 0;
         int breakfastPricePrNightPrPerson = 0;
@@ -31,18 +31,18 @@ public class Booking : Common
             }
         }
         
-        int vacationDays = (currentBooking.EndDate - currentBooking.StartDate).Days;
+        int vacationDays = (currentBookings.EndDate - currentBookings.StartDate).Days;
         
         bookingPrice += (selectedRoom.PricePrNight * vacationDays);
 
-        if (currentBooking.Breakfast)
+        if (currentBookings.Breakfast)
         {
-            bookingPrice += (breakfastPricePrNightPrPerson * currentBooking.PeopleCount) * vacationDays;
+            bookingPrice += (breakfastPricePrNightPrPerson * currentBookings.PeopleCount) * vacationDays;
         }
 
-        if (currentBooking.AllInclusive)
+        if (currentBookings.AllInclusive)
         {
-            bookingPrice += (allInclusivePricePrNightPrPerson*currentBooking.PeopleCount) * vacationDays;
+            bookingPrice += (allInclusivePricePrNightPrPerson*currentBookings.PeopleCount) * vacationDays;
         }
         
         return bookingPrice;
@@ -53,8 +53,8 @@ public class BookingCreateDTO
 {
     public int PeopleCount { get; set; }
     public int RoomId { get; set; }
-    public DateTime StartDate { get; set; } = DateTime.Today;
-    public DateTime EndDate { get; set; } = DateTime.Today;
+    public DateTime StartDate { get; set; } = DateTime.Today.Date;
+    public DateTime EndDate { get; set; } = DateTime.Today.Date;
     public bool Breakfast { get; set; }
     public bool AllInclusive { get; set; }
 }

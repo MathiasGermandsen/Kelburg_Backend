@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KelBurgAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8d173cfb49164126f2ac0d4ff6b32738548938fa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f19eee554f30e9a071a04222368889b63085683a")]
 [assembly: System.Reflection.AssemblyProductAttribute("KelBurgAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KelBurgAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

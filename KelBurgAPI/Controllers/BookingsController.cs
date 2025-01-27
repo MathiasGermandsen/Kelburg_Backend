@@ -8,11 +8,11 @@ namespace KelburgAPI.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 
-public class BookingController : ControllerBase
+public class BookingsController : ControllerBase
 {
     private readonly DatabaseContext _context;
 
-    public BookingController(DatabaseContext context)
+    public BookingsController(DatabaseContext context)
     {
         _context = context;
     }
@@ -25,7 +25,7 @@ public class BookingController : ControllerBase
             return BadRequest("Booking is null");
         } 
         
-        Booking newBooking = new Booking()
+        Bookings newBookings = new Bookings()
         {
             PeopleCount = booking.PeopleCount,
             BookingPrice = 0, // Will be calculated
@@ -39,17 +39,17 @@ public class BookingController : ControllerBase
         List<ServicePricesDict> servicePricesDicts = _context.ServicePricesDict.ToList();
         Rooms selectedRoom = _context.Rooms.Find(booking.RoomId);
         
-        newBooking.BookingPrice = newBooking.CalculateBookingPrice(newBooking, selectedRoom, servicePricesDicts);
+        newBookings.BookingPrice = newBookings.CalculateBookingPrice(newBookings, selectedRoom, servicePricesDicts);
         
-        _context.Booking.Add(newBooking);
+        _context.Booking.Add(newBookings);
         await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetBookings), new { id = newBooking.Id }, newBooking);
+        return CreatedAtAction(nameof(GetBookings), new { id = newBookings.Id }, newBookings);
     }
 
     [HttpGet("read")]
-    public async Task<ActionResult<IEnumerable<Booking>>> GetBookings(int? roomId, int pageSize = 100, int pageNumber = 1)
+    public async Task<ActionResult<IEnumerable<Bookings>>> GetBookings(int? roomId, int pageSize = 100, int pageNumber = 1)
     {
-        List<Booking> bookings = new List<Booking>();
+        List<Bookings> bookings = new List<Bookings>();
         
         if (roomId != null)
         {
@@ -70,16 +70,16 @@ public class BookingController : ControllerBase
     }
 
     [HttpDelete("delete")]
-    public async Task<ActionResult<Booking>> DeleteBooking(int bookingId)
+    public async Task<ActionResult<Bookings>> DeleteBooking(int bookingId)
     {
-        Booking bookingToDelete = await _context.Booking.FindAsync(bookingId);
+        Bookings bookingsToDelete = await _context.Booking.FindAsync(bookingId);
 
-        if (bookingToDelete == null)
+        if (bookingsToDelete == null)
         {
             return NotFound();
         }
         _context.Booking.Remove(await _context.Booking.FindAsync(bookingId));
         await _context.SaveChangesAsync();
-        return Ok(bookingToDelete);
+        return Ok(bookingsToDelete);
     }
 }

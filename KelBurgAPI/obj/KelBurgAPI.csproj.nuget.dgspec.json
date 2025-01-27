@@ -1,25 +1,29 @@
 {
   "format": 1,
   "restore": {
-    "/Users/mathias.germandsen/RiderProjects/KelBurgAPI/KelBurgAPI/KelBurgAPI.csproj": {}
+    "C:\\Users\\ary\\Desktop\\Skole\\Kelburg Hotel\\KELBURG\\KelBurgAPI\\KelBurgAPI.csproj": {}
   },
   "projects": {
-    "/Users/mathias.germandsen/RiderProjects/KelBurgAPI/KelBurgAPI/KelBurgAPI.csproj": {
+    "C:\\Users\\ary\\Desktop\\Skole\\Kelburg Hotel\\KELBURG\\KelBurgAPI\\KelBurgAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/mathias.germandsen/RiderProjects/KelBurgAPI/KelBurgAPI/KelBurgAPI.csproj",
+        "projectUniqueName": "C:\\Users\\ary\\Desktop\\Skole\\Kelburg Hotel\\KELBURG\\KelBurgAPI\\KelBurgAPI.csproj",
         "projectName": "KelBurgAPI",
-        "projectPath": "/Users/mathias.germandsen/RiderProjects/KelBurgAPI/KelBurgAPI/KelBurgAPI.csproj",
-        "packagesPath": "/Users/mathias.germandsen/.nuget/packages/",
-        "outputPath": "/Users/mathias.germandsen/RiderProjects/KelBurgAPI/KelBurgAPI/obj/",
+        "projectPath": "C:\\Users\\ary\\Desktop\\Skole\\Kelburg Hotel\\KELBURG\\KelBurgAPI\\KelBurgAPI.csproj",
+        "packagesPath": "C:\\Users\\ary\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\ary\\Desktop\\Skole\\Kelburg Hotel\\KELBURG\\KelBurgAPI\\obj\\",
         "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
         "configFilePaths": [
-          "/Users/mathias.germandsen/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\ary\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -71,7 +75,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.405/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.302/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

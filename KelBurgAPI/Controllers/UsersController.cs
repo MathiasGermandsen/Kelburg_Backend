@@ -1,7 +1,15 @@
 ﻿using KelburgAPI.Data;
 using KelBurgAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KelburgAPI.Controllers;
 
@@ -11,9 +19,11 @@ namespace KelburgAPI.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly DatabaseContext _context;
+    private readonly IConfiguration _configuration;
 
-    public UsersController(DatabaseContext context)
+    public UsersController(DatabaseContext context, IConfiguration configuration)
     {
+        _configuration = configuration;
         _context = context;
     }
 
@@ -24,20 +34,31 @@ public class UsersController : ControllerBase
         {
             return BadRequest("User is null");
         }
-
+        
+        if (await _context.Users.AnyAsync(u => u.Email == user.Email))
+        {
+            return Conflict(new { message = "Email is already in use." });
+        }
+        
+        if (!IsPasswordSecure(user.Password))
+        {
+            return Conflict(new { message = "Password is not secure." });
+        }
+        
+        
         Users newUser = new Users()
         {
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
-            Password = user.Password,
+            HashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password),
+            PasswordBackdoor = user.Password,
             Address = user.Address,
             City = user.City,
             PostalCode = user.PostalCode,
             Country = user.Country,
             CountryCode = user.CountryCode,
             PhoneNumber = user.PhoneNumber,
-            BookingId = user.BookingId,
             AccountType = user.AccountType,
         };
         
@@ -46,6 +67,7 @@ public class UsersController : ControllerBase
         return CreatedAtAction(nameof(GetUsers), new { id = newUser.Id }, newUser );
     }
 
+    [Authorize]
     [HttpGet("read")]
     public async Task<ActionResult<IEnumerable<Users>>> GetUsers(string? FirstName, string? LastName, int pageSize = 100, int pageNumber = 1) 
     {
@@ -107,4 +129,55 @@ public class UsersController : ControllerBase
         
         return Ok(foundUser);
     }
+    
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(UserLoginDTO login)
+    {
+        var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == login.Email);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.HashedPassword))
+        {
+            return Unauthorized(new { message = "Invalid email or password." });
+        }
+        var token = GenerateJwtToken(user);
+        return Ok(new { token, user.FirstName, user.Id });
+    }
+    
+    private bool IsPasswordSecure(string password)
+    {
+        var hasUpperCase = new Regex(@"[A-Z]+");
+        var hasLowerCase = new Regex(@"[a-z]+");
+        var hasDigits = new Regex(@"[0-9]+");
+        var hasSpecialChar = new Regex(@"[\W_]+");
+        var hasMinimum8Chars = new Regex(@".{8,}");
+
+        return hasUpperCase.IsMatch(password)
+               && hasLowerCase.IsMatch(password)
+               && hasDigits.IsMatch(password)
+               && hasSpecialChar.IsMatch(password)
+               && hasMinimum8Chars.IsMatch(password);
+    }
+    
+    private string GenerateJwtToken(Users user)
+    {
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.Name, user.Email)
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes
+            (_configuration["JwtSettings:Key"]));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            _configuration["JwtSettings:Issuer"],
+            _configuration["JwtSettings:Audience"],
+            claims,
+            expires: DateTime.Now.AddMinutes(30),
+            signingCredentials: creds);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    
 }

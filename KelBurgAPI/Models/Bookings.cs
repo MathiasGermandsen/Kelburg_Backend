@@ -2,6 +2,7 @@
 
 public class Bookings : Common
 {
+    public int UserId { get; set; }
     public int PeopleCount { get; set; }
     public int BookingPrice { get; set; }
     public int RoomId { get; set; }
@@ -51,6 +52,7 @@ public class Bookings : Common
 
 public class BookingCreateDTO
 {
+    public int UserId { get; set; }
     public int PeopleCount { get; set; }
     public int RoomId { get; set; }
     public DateTime StartDate { get; set; } = DateTime.Today.Date;

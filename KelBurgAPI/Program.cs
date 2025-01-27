@@ -1,4 +1,4 @@
-using KelBurgAPI.Data;
+using KelburgAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -46,7 +46,7 @@ namespace KelBurgAPI
             string connectionString = Configuration.GetConnectionString("DefaultConnection") 
                                       ?? Environment.GetEnvironmentVariable("DefaultConnection");
 
-            builder.Services.AddDbContext<AppDBContext>(options =>
+            builder.Services.AddDbContext<DatabaseContext>(options =>
                 options.UseNpgsql(connectionString));
             
             // Configure JWT Authentication

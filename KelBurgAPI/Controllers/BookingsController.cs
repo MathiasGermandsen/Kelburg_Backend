@@ -27,6 +27,7 @@ public class BookingsController : ControllerBase
         
         Bookings newBookings = new Bookings()
         {
+            UserId = booking.UserId,
             PeopleCount = booking.PeopleCount,
             BookingPrice = 0, // Will be calculated
             RoomId = booking.RoomId,

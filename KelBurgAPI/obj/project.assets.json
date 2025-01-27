@@ -2,6 +2,25 @@
   "version": 3,
   "targets": {
     "net8.0": {
+      "Microsoft.AspNetCore.OpenApi/8.0.12": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.OpenApi": "1.4.3"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.AspNetCore.OpenApi.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.AspNetCore.OpenApi.dll": {
+            "related": ".xml"
+          }
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
       "Microsoft.Extensions.ApiDescription.Server/6.0.5": {
         "type": "package",
         "build": {
@@ -92,6 +111,21 @@
     }
   },
   "libraries": {
+    "Microsoft.AspNetCore.OpenApi/8.0.12": {
+      "sha512": "ethhl6H45KrU7d8FRFBKAaJpMKdy2nJwG7j3XSt1b4o+H6saDr+2NQpEMIB1QTHxsrB2Un4C+j01PT5b75kOYQ==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.openapi/8.0.12",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/net8.0/Microsoft.AspNetCore.OpenApi.dll",
+        "lib/net8.0/Microsoft.AspNetCore.OpenApi.xml",
+        "microsoft.aspnetcore.openapi.8.0.12.nupkg.sha512",
+        "microsoft.aspnetcore.openapi.nuspec"
+      ]
+    },
     "Microsoft.Extensions.ApiDescription.Server/6.0.5": {
       "sha512": "Ckb5EDBUNJdFWyajfXzUIMRkhf52fHZOQuuZg/oiu8y7zDCVwD0iHhew6MnThjHmevanpxL3f5ci2TtHQEN6bw==",
       "type": "package",
@@ -448,24 +482,28 @@
     ]
   },
   "packageFolders": {
-    "/Users/mathias.germandsen/.nuget/packages/": {}
+    "C:\\Users\\ary\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/mathias.germandsen/RiderProjects/KelBurgAPI/KelBurgAPI/KelBurgAPI.csproj",
+      "projectUniqueName": "C:\\Users\\ary\\Desktop\\Skole\\Kelburg Hotel\\KELBURG\\KelBurgAPI\\KelBurgAPI.csproj",
       "projectName": "KelBurgAPI",
-      "projectPath": "/Users/mathias.germandsen/RiderProjects/KelBurgAPI/KelBurgAPI/KelBurgAPI.csproj",
-      "packagesPath": "/Users/mathias.germandsen/.nuget/packages/",
-      "outputPath": "/Users/mathias.germandsen/RiderProjects/KelBurgAPI/KelBurgAPI/obj/",
+      "projectPath": "C:\\Users\\ary\\Desktop\\Skole\\Kelburg Hotel\\KELBURG\\KelBurgAPI\\KelBurgAPI.csproj",
+      "packagesPath": "C:\\Users\\ary\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\ary\\Desktop\\Skole\\Kelburg Hotel\\KELBURG\\KelBurgAPI\\obj\\",
       "projectStyle": "PackageReference",
+      "UsingMicrosoftNETSdk": false,
       "configFilePaths": [
-        "/Users/mathias.germandsen/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\ary\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -517,32 +555,8 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.405/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.302/PortableRuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1801",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Unable to load the service index for source https://api.nuget.org/v3/index.json.",
-      "libraryId": "Microsoft.AspNetCore.OpenApi"
-    },
-    {
-      "code": "NU1101",
-      "level": "Error",
-      "message": "Unable to find package Microsoft.AspNetCore.OpenApi. No packages exist with this id in source(s): nuget.org",
-      "libraryId": "Microsoft.AspNetCore.OpenApi",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1900",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json."
-    }
-  ]
+  }
 }

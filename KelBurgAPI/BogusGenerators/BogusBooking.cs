@@ -30,8 +30,7 @@ public class BogusBooking
             })
             .RuleFor(b => b.UserId, f => f.PickRandom(validUserIds))
             .RuleFor(b => b.PeopleCount, f => f.Random.Number(1, 12))
-            .RuleFor(b => b.Breakfast, f => f.Random.Bool())
-            .RuleFor(b => b.AllInclusive, f => f.Random.Bool())
+            .RuleFor(b => b.ServiceId, f => f.Random.Number(1, 4))
             .RuleFor(b => b.RoomId, f =>
             {
                 if (RoomsToUse.Count == 0)

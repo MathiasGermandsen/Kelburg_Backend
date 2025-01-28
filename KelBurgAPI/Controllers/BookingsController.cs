@@ -33,11 +33,10 @@ public class BookingsController : ControllerBase
             RoomId = booking.RoomId,
             StartDate = booking.StartDate,
             EndDate = booking.EndDate,
-            Breakfast = booking.Breakfast,
-            AllInclusive = booking.AllInclusive,
+            ServiceId = booking.ServiceId,
         };
         
-        List<ServicePricesDict> servicePricesDicts = _context.ServicePricesDict.ToList();
+        List<Services> servicePricesDicts = _context.Services.ToList();
         Rooms selectedRoom = _context.Rooms.Find(booking.RoomId);
         
         newBookings.BookingPrice = newBookings.CalculateBookingPrice(newBookings, selectedRoom, servicePricesDicts);

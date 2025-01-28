@@ -1,9 +1,9 @@
-﻿using KelburgAPI.Data;
+﻿using KelBurgAPI.Data;
 using KelBurgAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace KelburgAPI.Controllers;
+namespace KelBurgAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -68,6 +68,19 @@ public class BookingsController : ControllerBase
         }
         
         return Ok(bookings);
+    }
+    
+    [HttpGet("findByUserId")]
+    public async Task<ActionResult<Bookings>> FindByUserId(int UserId)
+    {
+        List<Bookings> foundBookings = await _context.Booking.Where(c => c.UserId == UserId).ToListAsync();
+
+        if (foundBookings == null)
+        {
+            return NotFound("No bookings found");
+        }
+        
+        return Ok(foundBookings);
     }
 
     [HttpDelete("delete")]

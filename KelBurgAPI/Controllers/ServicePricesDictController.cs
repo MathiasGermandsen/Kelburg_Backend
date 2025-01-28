@@ -1,9 +1,9 @@
-﻿using KelburgAPI.Data;
+﻿using KelBurgAPI.Data;
 using KelBurgAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace KelburgAPI.Controllers;
+namespace KelBurgAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]

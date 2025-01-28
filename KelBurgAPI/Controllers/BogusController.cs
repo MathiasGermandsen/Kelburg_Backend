@@ -95,26 +95,33 @@ public class BogusController : ControllerBase
         List<Rooms> allRooms = _context.Rooms.ToList();
         List<Rooms> roomsInUse = new List<Rooms>();
         List<Rooms> roomsAvailable = new List<Rooms>();
-
-        foreach (Bookings existingBooking in allExistingBookings)
+        
+        if (allExistingBookings.Any())
         {
-            foreach (Rooms room in allRooms)
+            foreach (Bookings existingBooking in allExistingBookings)
             {
-                if (existingBooking.RoomId == room.Id && existingBooking.EndDate.Date > today &&
-                    !roomsInUse.Contains(room))
+                foreach (Rooms room in allRooms)
                 {
-                    roomsInUse.Add(room);
-
-                    if (roomsAvailable.Contains(room))
+                    if (existingBooking.RoomId == room.Id && existingBooking.EndDate.Date > today &&
+                        !roomsInUse.Contains(room))
                     {
-                        roomsAvailable.Remove(room);
+                        roomsInUse.Add(room);
+
+                        if (roomsAvailable.Contains(room))
+                        {
+                            roomsAvailable.Remove(room);
+                        }
+                    }
+                    else if (!roomsAvailable.Contains(room) && !roomsInUse.Contains(room))
+                    {
+                        roomsAvailable.Add(room);
                     }
                 }
-                else if (!roomsAvailable.Contains(room) && !roomsInUse.Contains(room))
-                {
-                    roomsAvailable.Add(room);
-                }
             }
+        }
+        else
+        {
+            roomsAvailable = allRooms;
         }
 
         int countToUse = 0;
@@ -132,8 +139,13 @@ public class BogusController : ControllerBase
             KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(countToUse, validUserIdList, roomsAvailable);
 
         List<Bookings> bookingsMapped = new List<Bookings>();
+        
         List<ServicePricesDict> servicePrices = _context.ServicePricesDict.ToList();
-
+        if (!servicePrices.Any())
+        {
+            return BadRequest("No Service-prices found. Cannot make booking.");
+        }
+        
         foreach (BookingCreateDTO booking in bookingsGenerated)
         {
             Bookings newBooking = new Bookings()

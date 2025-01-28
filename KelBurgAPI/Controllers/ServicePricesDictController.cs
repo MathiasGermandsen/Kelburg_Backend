@@ -16,24 +16,28 @@ public class ServicePricesDictController : ControllerBase
     {
         _context = context;
     }
-
-    [HttpPost("create")]
-    public async Task<ActionResult<ServicePricesDict>> CreateTicket([FromQuery] ServicePricesDictCreateDTO servicePrices)
+    
+    [HttpPost("createPredefined")]
+    public async Task<ActionResult<ServicePricesDict>> CreatePredefinedServicePrices()
     {
-        if (servicePrices == null)
+        ServicePricesDict breakfastPrice = new ServicePricesDict()
         {
-            return BadRequest("Service Prices is null");
-        }
-        
-        ServicePricesDict newServicePrice = new ServicePricesDict()
+            Type = "breakfast",
+            PricePrPersonPrNight = 100
+        };
+        ServicePricesDict allInclusivePrice = new ServicePricesDict()
         {
-            Type = servicePrices.Type,
-            PricePrPersonPrNight = servicePrices.PricePrPersonPrNight,
+            Type = "allinclusive",
+            PricePrPersonPrNight = 200
         };
         
-        _context.ServicePricesDict.Add(newServicePrice);
+        List<ServicePricesDict> servicePricesDict = new List<ServicePricesDict>();
+        servicePricesDict.Add(breakfastPrice);
+        servicePricesDict.Add(allInclusivePrice);
+        
+        _context.ServicePricesDict.AddRange(servicePricesDict);
         await _context.SaveChangesAsync();
-        return Ok(newServicePrice);
+        return Ok(servicePricesDict);
     }
     
     [HttpGet("read")]
@@ -45,4 +49,15 @@ public class ServicePricesDictController : ControllerBase
         
         return Ok(allServicePricesList);
     }
+
+    [HttpPatch("updatePrice")]
+    public async Task<ActionResult<ServicePricesDict>> ChangeServicePrice(string type, int NewPricePrPersonPrNight)
+    {
+        ServicePricesDict serviceToUpdate = await _context.ServicePricesDict.FirstOrDefaultAsync(s => s.Type == type);
+        serviceToUpdate.PricePrPersonPrNight = NewPricePrPersonPrNight;
+        _context.ServicePricesDict.Update(serviceToUpdate);
+        await _context.SaveChangesAsync();
+        return Ok(serviceToUpdate);
+    }
+    
 }

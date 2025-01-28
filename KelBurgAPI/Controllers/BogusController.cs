@@ -4,7 +4,6 @@ using KelBurgAPI.Data;
 
 namespace KelBurgAPI.Controllers;
 
-
 [Route("api/[controller]")]
 [ApiController]
 
@@ -140,7 +139,8 @@ public class BogusController : ControllerBase
 
         List<Bookings> bookingsMapped = new List<Bookings>();
         
-        List<ServicePricesDict> servicePrices = _context.ServicePricesDict.ToList();
+        List<Services> servicePrices = _context.Services.ToList();
+        
         if (!servicePrices.Any())
         {
             return BadRequest("No Service-prices found. Cannot make booking.");
@@ -156,8 +156,7 @@ public class BogusController : ControllerBase
                 RoomId = booking.RoomId,
                 StartDate = booking.StartDate,
                 EndDate = booking.EndDate,
-                Breakfast = booking.Breakfast,
-                AllInclusive = booking.AllInclusive,
+                ServiceId = booking.ServiceId,
             };
 
             Rooms? SelectedRoom = roomsAvailable.Find(r => r.Id == booking.RoomId);

@@ -8,43 +8,16 @@ public class Bookings : Common
     public int RoomId { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-    public bool Breakfast { get; set; }
-    public bool AllInclusive { get; set; }
+    public int ServiceId { get; set; }
 
-    public int CalculateBookingPrice(Bookings currentBooking, Rooms selectedRoom, List<ServicePricesDict> priceDict)
+    public int CalculateBookingPrice(Bookings currentBooking, Rooms selectedRoom, List<Services> services)
     {
         int bookingPrice = 0;
-        int breakfastPricePrNightPrPerson = 0;
-        int allInclusivePricePrNightPrPerson = 0;
-        
-        foreach (ServicePricesDict servicePrice in priceDict)
-        {
-            switch (servicePrice.Type)
-            {
-                case "breakfast":
-                    breakfastPricePrNightPrPerson = servicePrice.PricePrPersonPrNight;
-                    break;
-                case "allinclusive":
-                    allInclusivePricePrNightPrPerson = servicePrice.PricePrPersonPrNight;
-                    break;
-                default:
-                    break;
-            }
-        }
-        
+        int servicePricePrPersonPrNight = services[currentBooking.ServiceId-1].PricePrPersonPrNight;
         int vacationDays = (currentBooking.EndDate - currentBooking.StartDate).Days;
         
-        bookingPrice += (selectedRoom.PricePrNight * vacationDays);
-
-        if (currentBooking.Breakfast)
-        {
-            bookingPrice += (breakfastPricePrNightPrPerson * currentBooking.PeopleCount) * vacationDays;
-        }
-
-        if (currentBooking.AllInclusive)
-        {
-            bookingPrice += (allInclusivePricePrNightPrPerson*currentBooking.PeopleCount) * vacationDays;
-        }
+        bookingPrice += (servicePricePrPersonPrNight*vacationDays)*currentBooking.PeopleCount;
+        bookingPrice += (selectedRoom.PricePrNight*vacationDays);
         
         return bookingPrice;
     }
@@ -57,6 +30,5 @@ public class BookingCreateDTO
     public int RoomId { get; set; }
     public DateTime StartDate { get; set; } = DateTime.Today.Date;
     public DateTime EndDate { get; set; } = DateTime.Today.Date;
-    public bool Breakfast { get; set; }
-    public bool AllInclusive { get; set; }
+    public int ServiceId { get; set; }
 }

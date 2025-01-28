@@ -12,7 +12,7 @@ public class BogusController : ControllerBase
 {
 
     private readonly DatabaseContext _context;
-
+    
     public BogusController(DatabaseContext context)
     {
         _context = context;
@@ -78,4 +78,32 @@ public class BogusController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(roomsMapped);
     }
+
+    [HttpPost("GenTickets")]
+    public async Task<ActionResult<List<TicketCreateDTO>>> GenTickets(int count = 10)
+    {
+        if (count <= 0)
+        {
+            return BadRequest("Count must be greater than zero.");
+        }
+        List<int> ValidUserIdList = _context.Users.Select(u => u.Id).ToList();
+        List<TicketCreateDTO> ticketsGenerated = KelBurgAPI.BogusGenerators.BogusTicket.GenerateRooms(count, ValidUserIdList);
+        List<Tickets> ticketsMappedList = new List<Tickets>();
+
+        foreach (TicketCreateDTO ticket in ticketsGenerated)
+        {
+            Tickets ticketMapped = new Tickets()
+            {
+                FromUser = ticket.FromUser,
+                Description = ticket.Description,
+                Stars = ticket.Stars,
+            };
+            ticketsMappedList.Add(ticketMapped);
+        }
+        _context.Tickets.AddRange(ticketsMappedList);
+        await _context.SaveChangesAsync();
+        return Ok(ticketsMappedList);
+    }
 }
+
+

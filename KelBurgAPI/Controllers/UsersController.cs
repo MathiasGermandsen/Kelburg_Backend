@@ -57,7 +57,6 @@ public class UsersController : ControllerBase
             City = user.City,
             PostalCode = user.PostalCode,
             Country = user.Country,
-            CountryCode = user.CountryCode,
             PhoneNumber = user.PhoneNumber,
             AccountType = user.AccountType,
         };

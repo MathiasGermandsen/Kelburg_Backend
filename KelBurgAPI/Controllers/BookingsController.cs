@@ -73,14 +73,14 @@ public class BookingsController : ControllerBase
     [HttpGet("findByUserId")]
     public async Task<ActionResult<Bookings>> FindByUserId(int UserId)
     {
-        Bookings foundBooking = await _context.Booking.Where(c => c.UserId == UserId).FirstOrDefaultAsync();
+        List<Bookings> foundBookings = await _context.Booking.Where(c => c.UserId == UserId).ToListAsync();
 
-        if (foundBooking == null)
+        if (foundBookings == null)
         {
-            return NotFound("No booking found");
+            return NotFound("No bookings found");
         }
         
-        return Ok(foundBooking);
+        return Ok(foundBookings);
     }
 
     [HttpDelete("delete")]

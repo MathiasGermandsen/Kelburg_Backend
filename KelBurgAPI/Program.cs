@@ -1,4 +1,4 @@
-using KelburgAPI.Data;
+using KelBurgAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;

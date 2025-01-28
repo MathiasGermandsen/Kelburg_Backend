@@ -11,7 +11,7 @@ public class Bookings : Common
     public bool Breakfast { get; set; }
     public bool AllInclusive { get; set; }
 
-    public int CalculateBookingPrice(Bookings currentBookings, Rooms selectedRoom, List<ServicePricesDict> priceDict)
+    public int CalculateBookingPrice(Bookings currentBooking, Rooms selectedRoom, List<ServicePricesDict> priceDict)
     {
         int bookingPrice = 0;
         int breakfastPricePrNightPrPerson = 0;
@@ -32,18 +32,18 @@ public class Bookings : Common
             }
         }
         
-        int vacationDays = (currentBookings.EndDate - currentBookings.StartDate).Days;
+        int vacationDays = (currentBooking.EndDate - currentBooking.StartDate).Days;
         
         bookingPrice += (selectedRoom.PricePrNight * vacationDays);
 
-        if (currentBookings.Breakfast)
+        if (currentBooking.Breakfast)
         {
-            bookingPrice += (breakfastPricePrNightPrPerson * currentBookings.PeopleCount) * vacationDays;
+            bookingPrice += (breakfastPricePrNightPrPerson * currentBooking.PeopleCount) * vacationDays;
         }
 
-        if (currentBookings.AllInclusive)
+        if (currentBooking.AllInclusive)
         {
-            bookingPrice += (allInclusivePricePrNightPrPerson*currentBookings.PeopleCount) * vacationDays;
+            bookingPrice += (allInclusivePricePrNightPrPerson*currentBooking.PeopleCount) * vacationDays;
         }
         
         return bookingPrice;

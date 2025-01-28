@@ -1,7 +1,6 @@
 using KelBurgAPI.Models;
 using Bogus;
 
-
 namespace KelBurgAPI.BogusGenerators;
 
 public class BogusUsers

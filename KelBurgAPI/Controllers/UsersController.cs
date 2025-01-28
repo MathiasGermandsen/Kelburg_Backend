@@ -1,5 +1,4 @@
-﻿using KelburgAPI.Data;
-using KelBurgAPI.Models;
+﻿using KelBurgAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,9 +8,10 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using KelBurgAPI.Data;
 using Microsoft.AspNetCore.Authorization;
 
-namespace KelburgAPI.Controllers;
+namespace KelBurgAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]

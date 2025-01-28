@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using KelBurgAPI.Models;
 
-namespace KelburgAPI.Data;
+namespace KelBurgAPI.Data;
 
 public class DatabaseContext : DbContext
 {

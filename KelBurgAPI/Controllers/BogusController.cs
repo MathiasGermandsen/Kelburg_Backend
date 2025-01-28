@@ -78,6 +78,82 @@ public class BogusController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(roomsMapped);
     }
+    
+    [HttpPost("GenBookings")]
+    public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount = 10)
+    {
+        if (MaxCount <= 0)
+        {
+            return BadRequest("Count must be greater than zero.");
+        }
+        
+        List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
+
+        DateTime today = DateTime.Now.Date;
+        List<Bookings> allExistingBookings = _context.Booking.ToList();
+        
+        List<Rooms> allRooms = _context.Rooms.ToList();
+        List<Rooms> roomsInUse = new List<Rooms>();
+        List<Rooms> roomsAvailable = new List<Rooms>();
+
+        foreach (Bookings existingBooking in allExistingBookings)
+        {
+            foreach (Rooms room in allRooms)
+            {
+                if (existingBooking.RoomId == room.Id && existingBooking.EndDate.Date > today && !roomsInUse.Contains(room))
+                {
+                    roomsInUse.Add(room);
+                    
+                    if (roomsAvailable.Contains(room))
+                    {
+                        roomsAvailable.Remove(room);
+                    }
+                }
+                else if (!roomsAvailable.Contains(room) && !roomsInUse.Contains(room))
+                {
+                    roomsAvailable.Add(room);
+                }
+            }
+        }
+
+        int countToUse = 0;
+        
+        if (roomsAvailable.Count > MaxCount)
+        {
+           countToUse = MaxCount;
+        }
+        else
+        {
+            countToUse = roomsAvailable.Count;
+        }
+        List<BookingCreateDTO> bookingsGenerated = KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(countToUse, validUserIdList, roomsAvailable);
+        
+        List<Bookings> bookingsMapped = new List<Bookings>();
+        List<ServicePricesDict> servicePrices = _context.ServicePricesDict.ToList();
+        
+        foreach (BookingCreateDTO booking in bookingsGenerated)
+        {
+            Bookings newBooking = new Bookings()
+            {
+                UserId = booking.UserId,
+                PeopleCount = booking.PeopleCount,
+                BookingPrice = 0,
+                RoomId = booking.RoomId,
+                StartDate = booking.StartDate,
+                EndDate = booking.EndDate,
+                Breakfast = booking.Breakfast,
+                AllInclusive = booking.AllInclusive,
+            };
+            
+            Rooms? SelectedRoom = roomsAvailable.Find(r => r.Id == booking.RoomId);
+            
+            newBooking.BookingPrice = newBooking.CalculateBookingPrice(newBooking, SelectedRoom, servicePrices);
+            bookingsMapped.Add(newBooking);
+        }
+        
+        _context.Booking.AddRange(bookingsMapped);
+        await _context.SaveChangesAsync();
+        return Ok(bookingsMapped);
 
     [HttpPost("GenTickets")]
     public async Task<ActionResult<List<TicketCreateDTO>>> GenTickets(int count = 10)

@@ -179,5 +179,4 @@ public class UsersController : ControllerBase
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-    
 }

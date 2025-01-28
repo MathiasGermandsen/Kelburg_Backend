@@ -92,53 +92,31 @@ public class BogusController : ControllerBase
         List<Bookings> allExistingBookings = _context.Booking.ToList();
 
         List<Rooms> allRooms = _context.Rooms.ToList();
-        List<Rooms> roomsInUse = new List<Rooms>();
-        List<Rooms> roomsAvailable = new List<Rooms>();
         
-        if (allExistingBookings.Any())
-        {
-            foreach (Bookings existingBooking in allExistingBookings)
+        Dictionary<int, DateTime> latestEndDates = _context.Booking
+            .GroupBy(b => b.RoomId)
+            .Select(g => new { RoomId = g.Key, LatestEndDate = g.Max(b => b.EndDate) })
+            .ToDictionary(x => x.RoomId, x => x.LatestEndDate);
+        
+        List<Rooms> roomsAvailable = allRooms
+            .Where(r =>
             {
-                foreach (Rooms room in allRooms)
-                {
-                    if (existingBooking.RoomId == room.Id && existingBooking.EndDate.Date > today &&
-                        !roomsInUse.Contains(room))
-                    {
-                        roomsInUse.Add(room);
+                var overlappingBookings = allExistingBookings
+                    .Where(b => b.RoomId == r.Id && (b.StartDate < today && b.EndDate>=today))
+                    .ToList();
+                    
+                    bool isAvailable = !overlappingBookings.Any() || 
+                                       (latestEndDates.ContainsKey(r.Id) && latestEndDates[r.Id] < today);
+                    return isAvailable;
+            })
+            .ToList();
 
-                        if (roomsAvailable.Contains(room))
-                        {
-                            roomsAvailable.Remove(room);
-                        }
-                    }
-                    else if (!roomsAvailable.Contains(room) && !roomsInUse.Contains(room))
-                    {
-                        roomsAvailable.Add(room);
-                    }
-                }
-            }
-        }
-        else
-        {
-            roomsAvailable = allRooms;
-        }
-
-        int countToUse = 0;
-
-        if (roomsAvailable.Count > MaxCount)
-        {
-            countToUse = MaxCount;
-        }
-        else
-        {
-            countToUse = roomsAvailable.Count;
-        }
+        int countToUse = Math.Min(roomsAvailable.Count, MaxCount);
 
         List<BookingCreateDTO> bookingsGenerated =
             KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(countToUse, validUserIdList, roomsAvailable);
 
         List<Bookings> bookingsMapped = new List<Bookings>();
-        
         List<Services> servicePrices = _context.Services.ToList();
         
         if (!servicePrices.Any())

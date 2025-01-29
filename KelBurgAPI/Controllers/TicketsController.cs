@@ -29,7 +29,8 @@ public class TicketsController : ControllerBase
         {
             FromUser = ticket.FromUser,
             Description = ticket.Description,
-            Stars = ticket.Stars,
+            Category = ticket.Category,
+            Status = ticket.Status,
         };
         
         _context.Tickets.Add(newTicket);

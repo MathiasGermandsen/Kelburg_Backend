@@ -6,17 +6,15 @@ namespace KelBurgAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-
 public class BogusController : ControllerBase
 {
-
     private readonly DatabaseContext _context;
-    
+
     public BogusController(DatabaseContext context)
     {
         _context = context;
     }
-    
+
     [HttpPost("GenUsers")]
     public async Task<ActionResult<List<UserCreateDTO>>> GenUsers(int count = 10)
     {
@@ -24,7 +22,7 @@ public class BogusController : ControllerBase
         {
             return BadRequest("Count must be greater than zero.");
         }
-        
+
         List<UserCreateDTO> usersGenerated = KelBurgAPI.BogusGenerators.BogusUsers.GenerateUsers(count);
         List<Users> usersMapped = new List<Users>();
 
@@ -42,15 +40,16 @@ public class BogusController : ControllerBase
                 PostalCode = user.PostalCode,
                 Country = user.Country,
                 PhoneNumber = user.PhoneNumber,
-                AccountType =  user.AccountType
+                AccountType = user.AccountType
             };
             usersMapped.Add(userMapped);
         }
+
         _context.Users.AddRange(usersMapped);
         await _context.SaveChangesAsync();
         return Ok(usersMapped);
     }
-    
+
     [HttpPost("GenRooms")]
     public async Task<ActionResult<List<RoomCreateDTO>>> GenRooms(int count = 10)
     {
@@ -58,7 +57,7 @@ public class BogusController : ControllerBase
         {
             return BadRequest("Count must be greater than zero.");
         }
-        
+
         HotelPricing pricing;
         try
         {
@@ -68,7 +67,7 @@ public class BogusController : ControllerBase
         {
             return BadRequest($"Error loading pricing data: {ex.Message}");
         }
-        
+
         List<RoomCreateDTO> roomsGenerated = KelBurgAPI.BogusGenerators.BogusRooms.GenerateRooms(count, pricing);
         List<Rooms> roomsMapped = new List<Rooms>();
 
@@ -83,10 +82,10 @@ public class BogusController : ControllerBase
             };
             roomsMapped.Add(roomMapped);
         }
-        
+
         _context.Rooms.AddRange(roomsMapped);
         await _context.SaveChangesAsync();
-    
+
         return Ok(roomsMapped);
     }
 
@@ -99,41 +98,30 @@ public class BogusController : ControllerBase
         }
 
         List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
+        DateTime today = DateTime.Now;
 
         List<Bookings> allExistingBookings = _context.Booking.ToList();
         List<Rooms> allRooms = _context.Rooms.ToList();
-        
+
         Dictionary<int, DateTime> latestEndDates = _context.Booking
             .GroupBy(b => b.RoomId)
             .Select(g => new { RoomId = g.Key, LatestEndDate = g.Max(b => b.EndDate) })
             .ToDictionary(x => x.RoomId, x => x.LatestEndDate);
-        
-        List<Rooms> roomsAvailable = allRooms
-            .Where(r =>
-            {
-                var overlappingBookings = allExistingBookings
-                    .Where(b => b.RoomId == r.Id && (b.StartDate < today && b.EndDate>=today))
-                    .ToList();
-                    
-                    bool isAvailable = !overlappingBookings.Any() || 
-                                       (latestEndDates.ContainsKey(r.Id) && latestEndDates[r.Id] < today);
-                    return isAvailable;
-            })
-            .ToList();
 
-        int countToUse = Math.Min(roomsAvailable.Count, MaxCount);
+        int countToUse = MaxCount;
 
         List<BookingCreateDTO> bookingsGenerated =
-            KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(countToUse, validUserIdList, roomsAvailable);
+            KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(countToUse, validUserIdList, allRooms,
+                latestEndDates);
 
         List<Bookings> bookingsMapped = new List<Bookings>();
         List<Services> servicePrices = _context.Services.ToList();
-        
+
         if (!servicePrices.Any())
         {
             return BadRequest("No Service-prices found. Cannot make booking.");
         }
-        
+
         foreach (BookingCreateDTO booking in bookingsGenerated)
         {
             Bookings newBooking = new Bookings()
@@ -147,8 +135,18 @@ public class BogusController : ControllerBase
                 ServiceId = booking.ServiceId,
             };
 
-            Rooms? SelectedRoom = roomsAvailable.Find(r => r.Id == booking.RoomId);
+            if (latestEndDates.ContainsKey(newBooking.RoomId))
+            {
+                DateTime latestEndDate = latestEndDates[newBooking.RoomId];
+                if (newBooking.StartDate < latestEndDate.AddHours(3))
+                {
+                    newBooking.EndDate = latestEndDate.AddHours(3);
+                    newBooking.EndDate = newBooking.StartDate.AddHours(3);
+                }
+                latestEndDates[newBooking.RoomId] = newBooking.EndDate;
+            }
 
+            Rooms? SelectedRoom = allRooms.Find(r => r.Id == booking.RoomId);
             newBooking.BookingPrice = newBooking.CalculateBookingPrice(newBooking, SelectedRoom, servicePrices);
             bookingsMapped.Add(newBooking);
         }
@@ -165,8 +163,10 @@ public class BogusController : ControllerBase
         {
             return BadRequest("Count must be greater than zero.");
         }
+
         List<int> ValidUserIdList = _context.Users.Select(u => u.Id).ToList();
-        List<TicketCreateDTO> ticketsGenerated = KelBurgAPI.BogusGenerators.BogusTicket.GenerateRooms(count, ValidUserIdList);
+        List<TicketCreateDTO> ticketsGenerated =
+            KelBurgAPI.BogusGenerators.BogusTicket.GenerateRooms(count, ValidUserIdList);
         List<Tickets> ticketsMappedList = new List<Tickets>();
 
         foreach (TicketCreateDTO ticket in ticketsGenerated)
@@ -180,10 +180,9 @@ public class BogusController : ControllerBase
             };
             ticketsMappedList.Add(ticketMapped);
         }
+
         _context.Tickets.AddRange(ticketsMappedList);
         await _context.SaveChangesAsync();
         return Ok(ticketsMappedList);
     }
 }
-
-

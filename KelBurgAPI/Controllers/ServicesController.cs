@@ -80,4 +80,11 @@ public class ServicesController : ControllerBase
         await _context.SaveChangesAsync();
         return services;
     }
+
+    [HttpGet("read")]
+    public async Task<ActionResult<List<Services>>> GetServices()
+    {
+        List<Services> services = _context.Services.ToList();
+        return services;
+    }
 }

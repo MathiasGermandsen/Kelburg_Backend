@@ -54,13 +54,13 @@ public class RoomsController : ControllerBase
                 .Skip((pageNumber-1)*pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-        } else if (roomId > 0 && roomSize < 0)
+        } else if (roomId > 0 && roomSize <= 0)
         {
             rooms = await _context.Rooms.Where(c => c.Id == roomId)
                 .Skip((pageNumber-1)*pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-        } else if (roomId < 0 && roomSize > 0)
+        } else if (roomId <= 0 && roomSize > 0)
         {
             rooms = await _context.Rooms.Where(c =>  c.Size == roomSize)
                 .Skip((pageNumber-1)*pageSize)
@@ -83,5 +83,14 @@ public class RoomsController : ControllerBase
         roomTopatch.PricePrNight = newPriceId;
         await _context.SaveChangesAsync();
         return Ok(roomTopatch);
+    }
+
+    [HttpDelete("delete")]
+    public async Task<ActionResult<Rooms>> DeleteRoom(int roomId)
+    {
+        Rooms room = await _context.Rooms.FindAsync(roomId);
+        _context.Rooms.Remove(room);
+        await _context.SaveChangesAsync();
+        return Ok(room);
     }
 }

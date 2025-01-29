@@ -88,40 +88,11 @@ public class BogusController : ControllerBase
 
         List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
 
-        DateTime today = DateTime.Now.Date;
         List<Bookings> allExistingBookings = _context.Booking.ToList();
-
         List<Rooms> allRooms = _context.Rooms.ToList();
-        List<Rooms> roomsInUse = new List<Rooms>();
-        List<Rooms> roomsAvailable = new List<Rooms>();
+        Rooms roomInstance = new Rooms();
         
-        if (allExistingBookings.Any())
-        {
-            foreach (Bookings existingBooking in allExistingBookings)
-            {
-                foreach (Rooms room in allRooms)
-                {
-                    if (existingBooking.RoomId == room.Id && existingBooking.EndDate.Date > today &&
-                        !roomsInUse.Contains(room))
-                    {
-                        roomsInUse.Add(room);
-
-                        if (roomsAvailable.Contains(room))
-                        {
-                            roomsAvailable.Remove(room);
-                        }
-                    }
-                    else if (!roomsAvailable.Contains(room) && !roomsInUse.Contains(room))
-                    {
-                        roomsAvailable.Add(room);
-                    }
-                }
-            }
-        }
-        else
-        {
-            roomsAvailable = allRooms;
-        }
+        List<Rooms> roomsAvailable = roomInstance.GetAvailableRooms(allExistingBookings, allRooms);
 
         int countToUse = 0;
 

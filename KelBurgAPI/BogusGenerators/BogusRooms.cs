@@ -42,7 +42,7 @@ public class BogusRooms
                 "Forest view",
                 "Golf course view",
                 "Desert view"}))
-            .RuleFor(r => r.PricePrNight, f => f.Random.Number(3215, 7560));
+            .RuleFor(r => r.PricePrNight, f => f.Random.Number(900, 3250));
         return faker.Generate(count);
     }
 }

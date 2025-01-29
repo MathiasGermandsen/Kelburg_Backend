@@ -28,10 +28,10 @@ public class Rooms : Common
                         {
                             roomsAvailable.Remove(room);
                         }
-                        else if (!roomsAvailable.Contains(room) && !roomsInUse.Contains(room))
-                        {
-                            roomsAvailable.Add(room);
-                        }
+                    }
+                    else if (!roomsAvailable.Contains(room) && !roomsInUse.Contains(room))
+                    {
+                        roomsAvailable.Add(room);
                     }
                 }
             }

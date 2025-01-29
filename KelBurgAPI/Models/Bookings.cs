@@ -13,13 +13,20 @@ public class Bookings : Common
     public int CalculateBookingPrice(Bookings currentBooking, Rooms selectedRoom, List<Services> services)
     {
         int bookingPrice = 0;
-        int servicePricePrPersonPrNight = services[currentBooking.ServiceId-1].PricePrPersonPrNight;
         int vacationDays = (currentBooking.EndDate - currentBooking.StartDate).Days;
         
-        bookingPrice += (servicePricePrPersonPrNight*vacationDays)*currentBooking.PeopleCount;
-        bookingPrice += (selectedRoom.PricePrNight*vacationDays);
+        int totalServicePrices = (services[currentBooking.ServiceId-1].PricePrPersonPrNight*currentBooking.PeopleCount) * vacationDays;
+        int totalRoomPrice = selectedRoom.PricePrNight * vacationDays;
+
+        bookingPrice += totalServicePrices;
+        bookingPrice += totalRoomPrice;
         
         return bookingPrice;
+    }
+
+    public bool CheckBookingOverlap(Bookings booking1, Bookings booking2)
+    {
+        return booking1.StartDate <= booking2.EndDate && booking2.StartDate <= booking1.EndDate;
     }
 }
 

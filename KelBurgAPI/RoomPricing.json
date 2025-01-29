@@ -1,0 +1,37 @@
+{
+  "BaseRoomPrices": {
+    "Single room": 700,
+    "Quad room": 1750,
+    "Hollywood Twin": 1260,
+    "Cabana": 1540,
+    "Double room": 1050,
+    "Queen room": 1190,
+    "Twin room": 1120,
+    "Suite": 2100,
+    "Presidential Suites": 3500,
+    "Triple room": 1400,
+    "King room": 1400,
+    "Double hotel rooms": 1120,
+    "Standard hotel rooms": 840,
+    "Deluxe Room": 1960
+  },
+  "ViewTypePrices": {
+    "Ocean view": 350,
+    "Sea view": 315,
+    "Mountain view": 210,
+    "City view": 175,
+    "Garden view": 140,
+    "Pool view": 245,
+    "Lake view": 280,
+    "River view": 210,
+    "Beachfront view": 385,
+    "Park view": 140,
+    "Skyline view": 280,
+    "Courtyard view": 105,
+    "Marina view": 350,
+    "Forest view": 175,
+    "Golf course view": 245,
+    "Desert view": 105
+  },
+  "PerOccupantCharge": 70
+}

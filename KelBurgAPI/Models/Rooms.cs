@@ -6,6 +6,7 @@ public class Rooms : Common
     public string RoomType { get; set; }
     public string ViewType { get; set; }
     public int PricePrNight { get; set; }
+}
 
     public List<Rooms> GetAvailableRooms(List<Bookings> allExistingBookings, List<Rooms> allRooms)
     {

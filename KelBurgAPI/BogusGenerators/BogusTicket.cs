@@ -10,8 +10,7 @@ public class BogusTicket
             .RuleFor(t => t.FromUser, f => f.PickRandom(ValidUserIds))
             .RuleFor(t => t.Description, f => f.Rant.Review())
             .RuleFor(t => t.Stars, f => f.Random.Number(1, 5));
-
-
+        
         return faker.Generate(count);
     }
 }

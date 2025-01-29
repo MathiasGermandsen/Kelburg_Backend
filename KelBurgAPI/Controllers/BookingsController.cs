@@ -25,7 +25,7 @@ public class BookingsController : ControllerBase
             return BadRequest("Booking is null");
         } 
         
-        Bookings newBookings = new Bookings()
+        Bookings bookingToBeCreated = new Bookings()
         {
             UserId = booking.UserId,
             PeopleCount = booking.PeopleCount,
@@ -36,14 +36,30 @@ public class BookingsController : ControllerBase
             ServiceId = booking.ServiceId,
         };
         
+        List<Bookings> allExistingBookings = _context.Booking.ToList();
+        Rooms roomInstance = new Rooms();
+        
+        Rooms SelectedRoom = _context.Rooms.Find(booking.RoomId);
+
+        bool RoomAvailableAtDate = true;
+
+        if (allExistingBookings.Any())
+        {
+            RoomAvailableAtDate = roomInstance.IsRoomAvailableAtDate(allExistingBookings, SelectedRoom, bookingToBeCreated);      
+        }
+
+        if (!RoomAvailableAtDate)
+        {
+            return BadRequest($"Room is not available between {bookingToBeCreated.StartDate} and {bookingToBeCreated.EndDate}");
+        }
+        
         List<Services> servicePricesDicts = _context.Services.ToList();
-        Rooms selectedRoom = _context.Rooms.Find(booking.RoomId);
         
-        newBookings.BookingPrice = newBookings.CalculateBookingPrice(newBookings, selectedRoom, servicePricesDicts);
+        bookingToBeCreated.BookingPrice = bookingToBeCreated.CalculateBookingPrice(bookingToBeCreated, SelectedRoom, servicePricesDicts);
         
-        _context.Booking.Add(newBookings);
+        _context.Booking.Add(bookingToBeCreated);
         await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetBookings), new { id = newBookings.Id }, newBookings);
+        return CreatedAtAction(nameof(GetBookings), new { id = bookingToBeCreated.Id }, bookingToBeCreated);
     }
 
     [HttpGet("read")]

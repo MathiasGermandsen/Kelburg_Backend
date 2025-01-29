@@ -88,9 +88,7 @@ public class BogusController : ControllerBase
 
         List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
 
-        DateTime today = DateTime.Now.Date;
         List<Bookings> allExistingBookings = _context.Booking.ToList();
-
         List<Rooms> allRooms = _context.Rooms.ToList();
         
         Dictionary<int, DateTime> latestEndDates = _context.Booking

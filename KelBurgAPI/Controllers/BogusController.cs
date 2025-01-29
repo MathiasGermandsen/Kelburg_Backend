@@ -59,7 +59,17 @@ public class BogusController : ControllerBase
             return BadRequest("Count must be greater than zero.");
         }
         
-        List<RoomCreateDTO> roomsGenerated = KelBurgAPI.BogusGenerators.BogusRooms.GenerateRooms(count);
+        HotelPricing pricing;
+        try
+        {
+            pricing = KelBurgAPI.BogusGenerators.BogusRooms.LoadHotelPricing("RoomPricing.json");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error loading pricing data: {ex.Message}");
+        }
+        
+        List<RoomCreateDTO> roomsGenerated = KelBurgAPI.BogusGenerators.BogusRooms.GenerateRooms(count, pricing);
         List<Rooms> roomsMapped = new List<Rooms>();
 
         foreach (RoomCreateDTO room in roomsGenerated)
@@ -73,8 +83,10 @@ public class BogusController : ControllerBase
             };
             roomsMapped.Add(roomMapped);
         }
+        
         _context.Rooms.AddRange(roomsMapped);
         await _context.SaveChangesAsync();
+    
         return Ok(roomsMapped);
     }
 
@@ -187,7 +199,8 @@ public class BogusController : ControllerBase
             {
                 FromUser = ticket.FromUser,
                 Description = ticket.Description,
-                Stars = ticket.Stars,
+                Status = ticket.Status,
+                Category = ticket.Category,
             };
             ticketsMappedList.Add(ticketMapped);
         }

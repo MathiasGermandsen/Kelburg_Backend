@@ -35,6 +35,9 @@ services:
     depends_on:
       - db  
 
+volumes:
+  db_data:
+    
 secrets:
   DefaultConnection:
     external: true
@@ -44,6 +47,3 @@ secrets:
     external: true
   Key:
     external: true
-
-volumes:
-  db_data:

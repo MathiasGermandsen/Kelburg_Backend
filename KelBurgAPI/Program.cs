@@ -44,7 +44,7 @@ namespace KelBurgAPI
             IConfiguration Configuration = builder.Configuration;
 
             string connectionString = Configuration.GetConnectionString("DefaultConnection") 
-                                      ?? Environment.GetEnvironmentVariable("DefaultConnection");
+                                      ?? GetSecret("DefaultConnection");
 
             builder.Services.AddDbContext<DatabaseContext>(options =>
                 options.UseNpgsql(connectionString));
@@ -59,11 +59,11 @@ namespace KelBurgAPI
             {
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidIssuer = Configuration["JwtSettings:Issuer"],
-                    ValidAudience = Configuration["JwtSettings:Audience"],
+                    ValidIssuer = Configuration["JwtSettings:Issuer"] ?? GetSecret("Issuer"),
+                    ValidAudience = Configuration["JwtSettings:Audience"] ?? GetSecret("Audience"),
                     IssuerSigningKey = new SymmetricSecurityKey
                     (
-                        Encoding.UTF8.GetBytes(Configuration["JwtSettings:Key"])
+                        Encoding.UTF8.GetBytes(Configuration["JwtSettings:Key"] ?? GetSecret("Key"))
                     ),
                     ValidateIssuer = true,
                     ValidateAudience = true,
@@ -71,6 +71,9 @@ namespace KelBurgAPI
                     ValidateIssuerSigningKey = true
                 };
             });
+            
+            
+            
             
             var app = builder.Build();
             
@@ -84,6 +87,21 @@ namespace KelBurgAPI
             app.MapControllers();
             
             app.Run();
+        }
+
+        public static string GetSecret(string SecreteKey)
+        {
+            string secretFilePath = Environment.GetEnvironmentVariable(SecreteKey);
+            string connectionString = null;
+
+            if (!string.IsNullOrEmpty(secretFilePath) && File.Exists(secretFilePath))
+            {
+                return File.ReadAllText(secretFilePath).Trim(); // Trim to remove unnecessary spaces or newlines
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

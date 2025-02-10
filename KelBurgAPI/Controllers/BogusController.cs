@@ -65,7 +65,17 @@ public class BogusController : ControllerBase
             return BadRequest("Count must be greater than zero.");
         }
         
-        List<RoomCreateDTO> roomsGenerated = KelBurgAPI.BogusGenerators.BogusRooms.GenerateRooms(count);
+        HotelPricing pricing;
+        try
+        {
+            pricing = KelBurgAPI.BogusGenerators.BogusRooms.LoadHotelPricing("RoomPricing.json");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error loading pricing data: {ex.Message}");
+        }
+        
+        List<RoomCreateDTO> roomsGenerated = KelBurgAPI.BogusGenerators.BogusRooms.GenerateRooms(count, pricing);
         List<Rooms> roomsMapped = new List<Rooms>();
 
         foreach (RoomCreateDTO room in roomsGenerated)
@@ -79,14 +89,16 @@ public class BogusController : ControllerBase
             };
             roomsMapped.Add(roomMapped);
         }
+        
         _context.Rooms.AddRange(roomsMapped);
         await _context.SaveChangesAsync();
+    
         return Ok(roomsMapped);
     }
 
-    [HttpPost("GenBookings")]
-    public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount = 10)
-    {
+   [HttpPost("GenBookings")]
+public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount = 10)
+{
         if (MaxCount <= 0)
         {
             return BadRequest("Count must be greater than zero.");
@@ -144,7 +156,7 @@ public class BogusController : ControllerBase
         _context.Booking.AddRange(bookingsMapped);
         await _context.SaveChangesAsync();
         return Ok(bookingsMapped);
-    }
+}
 
     [HttpPost("GenTickets")]
     public async Task<ActionResult<List<TicketCreateDTO>>> GenTickets(int count = 10)
@@ -163,7 +175,8 @@ public class BogusController : ControllerBase
             {
                 FromUser = ticket.FromUser,
                 Description = ticket.Description,
-                Stars = ticket.Stars,
+                Status = ticket.Status,
+                Category = ticket.Category,
             };
             ticketsMappedList.Add(ticketMapped);
         }

@@ -4,6 +4,21 @@ using KelBurgAPI.Models;
 namespace KelBurgAPI.BogusGenerators
 {
     public class BogusBooking
+    private static readonly Dictionary<string, int> RoomOccupancyLimits = new()
+    {
+        { "Single room", 1 },
+        { "Double room", 2 },
+        { "Twin room", 2 },
+        { "Hollywood Twin", 2 },
+        { "Queen room", 2 },
+        { "Triple room", 3 },
+        { "Quad room", 4 },
+        { "Suite", 5 },
+        { "Deluxe Room", 6 },
+        { "Presidential Suites", 12 }
+    };
+
+    public static List<BookingCreateDTO> GenerateBookings(int count, List<int> validUserIds, List<Rooms> availableRooms)
     {
         public static List<BookingCreateDTO> GenerateBookings(int count, List<int> validUserIds, List<Rooms> allRooms, List<Bookings> allExistingBookings)
         {

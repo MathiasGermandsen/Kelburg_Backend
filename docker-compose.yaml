@@ -3,9 +3,9 @@
     image: postgres:15-alpine
     container_name: kelburg_db
     environment:
-      POSTGRES_USER: your_username
-      POSTGRES_PASSWORD: your_password
-      POSTGRES_DB: kelburgdb
+      POSTGRES_USER: /run/secrets/POSTGRES_USER
+      POSTGRES_PASSWORD: /run/secrets/POSTGRES_PASSWORD
+      POSTGRES_DB: /run/secrets/POSTGRES_DB
     ports:
       - "5432:5432"
     healthcheck:
@@ -32,6 +32,9 @@
       - Issuer
       - Audience
       - Key
+      - POSTGRES_DB
+      - POSTGRES_PASSWORD
+      - POSTGRES_USER
     ports:
       - "8080:8080"
     depends_on:
@@ -40,10 +43,13 @@
 
 volumes:
   db_data:
-    
+
 secrets:
   DefaultConnection:
   Issuer:
   Audience:
   Key:
-    external: true
+  POSTGRES_USER:
+  POSTGRES_PASSWORD:
+  POSTGRES_DB:
+    external: true 

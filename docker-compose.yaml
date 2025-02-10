@@ -1,4 +1,6 @@
-﻿services:
+﻿version: "3.8"
+
+services:
   db:
     image: postgres:15-alpine
     container_name: kelburg_db
@@ -31,16 +33,17 @@
     ports:
       - "8080:8080"
     depends_on:
-      db:
-        condition: service_healthy
-        
+      - db  
+
 secrets:
   DefaultConnection:
+    external: true
   Issuer:
+    external: true
   Audience:
+    external: true
   Key:
     external: true
 
 volumes:
   db_data:
-    

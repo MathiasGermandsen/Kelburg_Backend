@@ -1,6 +1,6 @@
 ﻿services:
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: kelburg_db
     environment:
       POSTGRES_USER: /run/secrets/POSTGRES_USER
@@ -38,8 +38,8 @@
     ports:
       - "8080:8080"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
+  
 
 volumes:
   db_data:

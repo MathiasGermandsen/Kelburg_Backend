@@ -2,10 +2,6 @@
   db:
     image: postgres:15-alpine
     container_name: kelburg_db
-    environment:
-      POSTGRES_USER: your_username
-      POSTGRES_PASSWORD: your_password
-      POSTGRES_DB: kelburgdb
     ports:
       - "5432:5432"
     healthcheck:

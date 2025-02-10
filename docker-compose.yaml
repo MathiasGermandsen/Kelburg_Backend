@@ -1,4 +1,6 @@
-﻿services:
+﻿version: "3.8"
+
+services:
   db:
     image: postgres:17-alpine
     container_name: kelburg_db
@@ -9,7 +11,7 @@
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,17 +41,22 @@
       - "8080:8080"
     depends_on:
       - db
-  
 
 volumes:
   db_data:
 
 secrets:
   DefaultConnection:
+    external: true
   Issuer:
+    external: true
   Audience:
+    external: true
   Key:
+    external: true
   POSTGRES_USER:
+    external: true
   POSTGRES_PASSWORD:
+    external: true
   POSTGRES_DB:
-    external: true 
+    external: true

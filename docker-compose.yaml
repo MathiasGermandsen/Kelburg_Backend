@@ -1,9 +1,11 @@
-﻿version: "3.8"
-
-services:
+﻿services:
   db:
-    image: postgres:15
+    image: postgres:15-alpine
     container_name: kelburg_db
+    environment:
+      POSTGRES_USER: your_username
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: kelburgdb
     ports:
       - "5432:5432"
     healthcheck:
@@ -33,17 +35,15 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db  
+      db:
+        condition: service_healthy
 
 volumes:
   db_data:
     
 secrets:
   DefaultConnection:
-    external: true
   Issuer:
-    external: true
   Audience:
-    external: true
   Key:
     external: true

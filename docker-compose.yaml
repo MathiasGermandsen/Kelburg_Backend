@@ -33,13 +33,14 @@
     depends_on:
       db:
         condition: service_healthy
-
-volumes:
-  db_data:
-    
+        
 secrets:
   DefaultConnection:
   Issuer:
   Audience:
   Key:
     external: true
+
+volumes:
+  db_data:
+    

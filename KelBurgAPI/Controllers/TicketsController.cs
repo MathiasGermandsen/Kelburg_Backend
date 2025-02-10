@@ -67,8 +67,9 @@ public class TicketsController : ControllerBase
 
         if (ticketToDelete == null)
         {
-            return NotFound();
+            return NotFound("Ticket not found");
         }
+        
         _context.Tickets.Remove(await _context.Tickets.FindAsync(ticketId));
         await _context.SaveChangesAsync();
         return Ok(ticketToDelete);

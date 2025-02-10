@@ -5,7 +5,7 @@ public class Users : Common
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string Email { get; set; }
-    public required string HashedPassword { get; set; }
+    public string HashedPassword { get; set; }
     public string PasswordBackdoor { get; set; }
     public string Address { get; set; }
     public string City { get; set; }
@@ -13,6 +13,16 @@ public class Users : Common
     public string Country { get; set; }
     public string PhoneNumber { get; set; }
     public string AccountType { get; set; }
+    
+    public string UpperFirstLetter(string input)
+    {
+        if (input == null)
+        {
+            return null;
+        }
+        input = input.ToLower();
+        return char.ToUpper(input[0]) + input.Substring(1);
+    }
 }
 
 public class UserCreateDTO

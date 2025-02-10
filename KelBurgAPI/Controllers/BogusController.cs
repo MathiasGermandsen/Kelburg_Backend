@@ -24,32 +24,38 @@ public class BogusController : ControllerBase
         {
             return BadRequest("Count must be greater than zero.");
         }
-        
+
         List<UserCreateDTO> usersGenerated = KelBurgAPI.BogusGenerators.BogusUsers.GenerateUsers(count);
         List<Users> usersMapped = new List<Users>();
 
-        foreach (UserCreateDTO user in usersGenerated)
+        await Parallel.ForEachAsync(usersGenerated, new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, count / 20) }, async (user, _) =>
         {
             Users userMapped = new Users()
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                HashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password),
+                HashedPassword = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(user.Password)),
                 PasswordBackdoor = user.Password,
                 Address = user.Address,
                 City = user.City,
                 PostalCode = user.PostalCode,
                 Country = user.Country,
                 PhoneNumber = user.PhoneNumber,
-                AccountType =  user.AccountType
+                AccountType = user.AccountType
             };
-            usersMapped.Add(userMapped);
-        }
+
+            lock (usersMapped)
+            {
+                usersMapped.Add(userMapped);
+            }
+        });
+
         _context.Users.AddRange(usersMapped);
         await _context.SaveChangesAsync();
         return Ok(usersMapped);
     }
+
     
     [HttpPost("GenRooms")]
     public async Task<ActionResult<List<RoomCreateDTO>>> GenRooms(int count = 10)
@@ -105,8 +111,7 @@ public class BogusController : ControllerBase
             countToUse = roomsAvailable.Count;
         }
 
-        List<BookingCreateDTO> bookingsGenerated =
-            KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(countToUse, validUserIdList, roomsAvailable);
+        List<BookingCreateDTO> bookingsGenerated = KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(MaxCount, validUserIdList, allRooms, allExistingBookings);
 
         List<Bookings> bookingsMapped = new List<Bookings>();
         

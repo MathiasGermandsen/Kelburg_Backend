@@ -76,11 +76,11 @@ public class RoomsController : ControllerBase
         return Ok(rooms);
     }
 
-    [HttpPatch("changePriceId")]
-    public async Task<ActionResult<Rooms>> ChangePriceId(int roomIdToChange, int newPriceId)
+    [HttpPatch("changePrice")]
+    public async Task<ActionResult<Rooms>> ChangePriceId(int roomIdToChange, int newPrice)
     {
         Rooms roomTopatch = await _context.Rooms.FindAsync(roomIdToChange);
-        roomTopatch.PricePrNight = newPriceId;
+        roomTopatch.PricePrNight = newPrice;
         await _context.SaveChangesAsync();
         return Ok(roomTopatch);
     }
@@ -89,6 +89,12 @@ public class RoomsController : ControllerBase
     public async Task<ActionResult<Rooms>> DeleteRoom(int roomId)
     {
         Rooms room = await _context.Rooms.FindAsync(roomId);
+        
+        if (room == null)
+        {
+            return NotFound("Room not found");
+        }
+        
         _context.Rooms.Remove(room);
         await _context.SaveChangesAsync();
         return Ok(room);

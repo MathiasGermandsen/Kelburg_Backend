@@ -1,48 +1,79 @@
 using Bogus;
 using KelBurgAPI.Models;
 
-namespace KelBurgAPI.BogusGenerators;
-
-public class BogusBooking
+namespace KelBurgAPI.BogusGenerators
 {
-    public static List<BookingCreateDTO> GenerateBookings(int count, List<int> validUserIds, List<Rooms> availableRooms)
+    public class BogusBooking
     {
-        List<Rooms> RoomsToUse = new List<Rooms>(availableRooms);
+        public static List<BookingCreateDTO> GenerateBookings(int count, List<int> validUserIds, List<Rooms> allRooms, List<Bookings> allExistingBookings)
+        {
+            List<BookingCreateDTO> newlyCreatedBookings = new List<BookingCreateDTO>();
+            Faker<BookingCreateDTO> faker = new Faker<BookingCreateDTO>()
+                .CustomInstantiator(f =>
+                {
+                    Rooms selectedRoom = f.PickRandom(allRooms);
+                    DateTime startDate = f.Date.Soon().ToUniversalTime();
+                    int numberOfDays = f.Random.Number(3, 14);
+                    DateTime endDate = startDate.AddDays(numberOfDays).ToUniversalTime();
 
-        Faker<BookingCreateDTO> faker = new Faker<BookingCreateDTO>()
-            .CustomInstantiator(f =>
+                    if (endDate <= startDate)
+                    {
+                        endDate = startDate.AddDays(1).ToUniversalTime();
+                    }
+
+                    List<Bookings> allBookingsIncludingNew = new List<Bookings>(allExistingBookings);
+                    allBookingsIncludingNew.AddRange(newlyCreatedBookings.Select(b => new Bookings 
+                    { 
+                        RoomId = b.RoomId, 
+                        StartDate = b.StartDate, 
+                        EndDate = b.EndDate 
+                    }));
+
+                    (startDate, endDate) = FindNextAvailableDates(selectedRoom, startDate, numberOfDays, allBookingsIncludingNew);
+
+                    BookingCreateDTO newBooking = new BookingCreateDTO
+                    {
+                        StartDate = startDate,
+                        EndDate = endDate,
+                        RoomId = selectedRoom.Id
+                    };
+
+                    newlyCreatedBookings.Add(newBooking);
+                    return newBooking;
+                })
+                .RuleFor(b => b.UserId, f => f.PickRandom(validUserIds))
+                .RuleFor(b => b.PeopleCount, f => f.Random.Number(1, 12))
+                .RuleFor(b => b.ServiceId, f => f.Random.Number(1, 4));
+
+            return faker.Generate(count);
+        }
+
+        private static (DateTime startDate, DateTime endDate) FindNextAvailableDates(Rooms selectedRoom, DateTime startDate, int numberOfDays, List<Bookings> allBookings)
+        {
+            DateTime highestEndDate = new DateTime();
+            
+            while (true)
             {
-                DateTime startDate = f.Date.Soon().ToUniversalTime();
+                Bookings? overlappingBooking = allBookings
+                    .Where(b => b.RoomId == selectedRoom.Id && b.CheckBookingOverlap(b, new Bookings { RoomId = selectedRoom.Id, StartDate = startDate, EndDate = startDate.AddDays(numberOfDays) }))
+                    .OrderBy(b => b.EndDate)
+                    .FirstOrDefault();
+
+                if (overlappingBooking == null)
+                {
+                    break;
+                }
+
+                Random random = new Random();
                 
-                int numberOfDays = f.Random.Number(3, 14);
-                DateTime endDate = startDate.AddDays(numberOfDays).ToUniversalTime();
-
-                if (endDate <= startDate)
+                if (highestEndDate < overlappingBooking.EndDate)
                 {
-                    endDate = startDate.AddDays(1).ToUniversalTime();
+                    highestEndDate = overlappingBooking.EndDate;
                 }
-
-                return new BookingCreateDTO
-                {
-                    StartDate = startDate,
-                    EndDate = endDate
-                };
-            })
-            .RuleFor(b => b.UserId, f => f.PickRandom(validUserIds))
-            .RuleFor(b => b.PeopleCount, f => f.Random.Number(1, 12))
-            .RuleFor(b => b.ServiceId, f => f.Random.Number(1, 4))
-            .RuleFor(b => b.RoomId, f =>
-            {
-                if (RoomsToUse.Count == 0)
-                {
-                    throw new InvalidOperationException("No more available rooms to assign.");
-                }
-
-                Rooms room = f.PickRandom(RoomsToUse);
-                RoomsToUse.Remove(room);
-                return room.Id;
-            });
-
-        return faker.Generate(count);
+                
+                startDate = highestEndDate.AddHours(random.Next(3, 24));
+            }
+            return (startDate, startDate.AddDays(numberOfDays));
+        }
     }
 }

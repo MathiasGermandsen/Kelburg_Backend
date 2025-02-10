@@ -45,7 +45,6 @@ public class UsersController : ControllerBase
             return Conflict(new { message = "Password is not secure." });
         }
         
-        
         Users newUser = new Users()
         {
             FirstName = user.FirstName,
@@ -66,10 +65,13 @@ public class UsersController : ControllerBase
         return CreatedAtAction(nameof(GetUsers), new { id = newUser.Id }, newUser );
     }
 
-    [Authorize]
     [HttpGet("read")]
     public async Task<ActionResult<IEnumerable<Users>>> GetUsers(string? FirstName, string? LastName, int pageSize = 100, int pageNumber = 1) 
     {
+        Users userInstance = new Users();
+        FirstName = userInstance.UpperFirstLetter(FirstName);
+        LastName = userInstance.UpperFirstLetter(LastName);
+        
         if (pageNumber < 1 || pageSize < 1)
         {
             return BadRequest("PageNumber and size must be greater than 0");
@@ -92,14 +94,14 @@ public class UsersController : ControllerBase
                 .Take(pageSize)
                 .ToListAsync();
             
-        } else if (LastName != null && FirstName == null)
+        } else if (FirstName == null && LastName != null)
         {
             users = await _context.Users.Where(c => c.LastName == LastName)  
                 .Skip((pageNumber-1)*pageSize)
                 .Take(pageSize)
                 .ToListAsync();
             
-        } else if (LastName != null && FirstName != null)
+        } else if (FirstName != null && LastName != null)
         {
             users = await _context.Users.Where(c => c.LastName == LastName && c.FirstName == FirstName)  
                 .Skip((pageNumber-1)*pageSize)
@@ -158,18 +160,18 @@ public class UsersController : ControllerBase
     
     private string GenerateJwtToken(Users user)
     {
-        var claims = new[]
+        Claim[] claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.Name, user.Email)
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes
+        SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes
             (_configuration["JwtSettings:Key"]));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        SigningCredentials? creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var token = new JwtSecurityToken(
+        JwtSecurityToken token = new JwtSecurityToken(
             _configuration["JwtSettings:Issuer"],
             _configuration["JwtSettings:Audience"],
             claims,
@@ -177,5 +179,20 @@ public class UsersController : ControllerBase
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    
+    [HttpDelete("delete")]
+    public async Task<ActionResult<Users>> DeleteUser(int userId)
+    {
+        Users user = await _context.Users.FindAsync(userId);
+        
+        if (user == null)
+        {
+            return NotFound("User not found");
+        }
+        
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+        return Ok(user);
     }
 }

@@ -19,7 +19,7 @@
   app:
     build:
       context: .
-      dockerfile: KelBurgAPI/Dockerfile
+    image: api_app_image:latest
     container_name: kelburg_api
     environment:
       ASPNETCORE_ENVIRONMENT: Development

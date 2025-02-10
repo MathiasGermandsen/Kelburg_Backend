@@ -12,4 +12,5 @@ public class DatabaseContext : DbContext
     public DbSet<Bookings> Booking { get; set; }
     public DbSet<Tickets> Tickets { get; set; }
     public DbSet<Services> Services { get; set; }
+
 }

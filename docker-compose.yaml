@@ -23,7 +23,15 @@
     container_name: kelburg_api
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=kelburgdb;Username=your_username;Password=your_password"
+      DefaultConnection: /run/secrets/DefaultConnection
+      Issuer: /run/secrets/Issuer
+      Audience: /run/secrets/Audience
+      Key: /run/secrets/Key
+    secrets:
+      - DefaultConnection
+      - Issuer
+      - Audience
+      - Key
     ports:
       - "8080:8080"
     depends_on:
@@ -32,3 +40,10 @@
 
 volumes:
   db_data:
+    
+secrets:
+  DefaultConnection:
+  Issuer:
+  Audience:
+  Key:
+    external: true

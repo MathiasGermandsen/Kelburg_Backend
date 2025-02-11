@@ -14,8 +14,16 @@ public class Bookings : Common
     {
         int bookingPrice = 0;
         int vacationDays = (currentBooking.EndDate - currentBooking.StartDate).Days;
+
+        if (vacationDays == 0)
+        {
+            vacationDays = 1;
+        }
+
+        int serviceIndex = currentBooking.ServiceId - 1;
+        Services selectedService = services[serviceIndex];
         
-        int totalServicePrices = (services[currentBooking.ServiceId-1].PricePrPersonPrNight*currentBooking.PeopleCount) * vacationDays;
+        int totalServicePrices = selectedService.PricePrPersonPrNight * currentBooking.PeopleCount * vacationDays;        
         int totalRoomPrice = selectedRoom.PricePrNight * vacationDays;
 
         bookingPrice += totalServicePrices;
@@ -39,3 +47,13 @@ public class BookingCreateDTO
     public DateTime EndDate { get; set; } = DateTime.Today.Date;
     public int ServiceId { get; set; }
 }
+
+public class BookingEditDTO
+{
+    public int PeopleCount { get; set; }
+    public int RoomId { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public int ServiceId { get; set; }
+}
+

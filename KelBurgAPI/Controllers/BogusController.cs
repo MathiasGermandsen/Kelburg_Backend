@@ -24,32 +24,38 @@ public class BogusController : ControllerBase
         {
             return BadRequest("Count must be greater than zero.");
         }
-        
+
         List<UserCreateDTO> usersGenerated = KelBurgAPI.BogusGenerators.BogusUsers.GenerateUsers(count);
         List<Users> usersMapped = new List<Users>();
 
-        foreach (UserCreateDTO user in usersGenerated)
+        await Parallel.ForEachAsync(usersGenerated, new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, count / 20) }, async (user, _) =>
         {
             Users userMapped = new Users()
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                HashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password),
+                HashedPassword = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(user.Password)),
                 PasswordBackdoor = user.Password,
                 Address = user.Address,
                 City = user.City,
                 PostalCode = user.PostalCode,
                 Country = user.Country,
                 PhoneNumber = user.PhoneNumber,
-                AccountType =  user.AccountType
+                AccountType = user.AccountType
             };
-            usersMapped.Add(userMapped);
-        }
+
+            lock (usersMapped)
+            {
+                usersMapped.Add(userMapped);
+            }
+        });
+
         _context.Users.AddRange(usersMapped);
         await _context.SaveChangesAsync();
         return Ok(usersMapped);
     }
+
     
     [HttpPost("GenRooms")]
     public async Task<ActionResult<List<RoomCreateDTO>>> GenRooms(int count = 10)
@@ -93,73 +99,63 @@ public class BogusController : ControllerBase
    [HttpPost("GenBookings")]
 public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount = 10)
 {
-    if (MaxCount <= 0)
-    {
-        return BadRequest("Count must be greater than zero.");
-    }
-
-    Console.WriteLine($"MaxCount received: {MaxCount}");
-
-    List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
-    if (!validUserIdList.Any())
-    {
-        return BadRequest("No valid users found. Cannot generate bookings.");
-    }
-
-    List<Bookings> allExistingBookings = _context.Booking.ToList();
-    List<Rooms> allRooms = _context.Rooms.ToList();
-    Rooms roomInstance = new Rooms();
-    
-    List<Rooms> roomsAvailable = roomInstance.GetAvailableRooms(allExistingBookings, allRooms);
-    if (!roomsAvailable.Any())
-    {
-        return BadRequest("No available rooms found. Cannot generate bookings.");
-    }
-
-    int countToUse = (roomsAvailable.Count > MaxCount) ? MaxCount : roomsAvailable.Count;
-
-    if (countToUse == 0)
-    {
-        return BadRequest("Not enough rooms available to create bookings.");
-    }
-
-    List<BookingCreateDTO> bookingsGenerated =
-        KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(countToUse, validUserIdList, roomsAvailable);
-
-    List<Bookings> bookingsMapped = new List<Bookings>();
-    List<Services> servicePrices = _context.Services.ToList();
-
-    if (!servicePrices.Any())
-    {
-        return BadRequest("No Service-prices found. Cannot make booking.");
-    }
-
-    foreach (BookingCreateDTO booking in bookingsGenerated)
-    {
-        Rooms? selectedRoom = roomsAvailable.Find(r => r.Id == booking.RoomId);
-        if (selectedRoom == null)
+        if (MaxCount <= 0)
         {
-            return BadRequest($"Room ID {booking.RoomId} not found.");
+            return BadRequest("Count must be greater than zero.");
         }
 
-        Bookings newBooking = new Bookings()
+        List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
+
+        List<Bookings> allExistingBookings = _context.Booking.ToList();
+        List<Rooms> allRooms = _context.Rooms.ToList();
+        Rooms roomInstance = new Rooms();
+        
+        List<Rooms> roomsAvailable = roomInstance.GetAvailableRooms(allExistingBookings, allRooms);
+
+        int countToUse = 0;
+
+        if (roomsAvailable.Count > MaxCount)
         {
-            UserId = booking.UserId,
-            PeopleCount = booking.PeopleCount,
-            BookingPrice = 0,
-            RoomId = booking.RoomId,
-            StartDate = booking.StartDate,
-            EndDate = booking.EndDate,
-            ServiceId = booking.ServiceId,
-        };
+            countToUse = MaxCount;
+        }
+        else
+        {
+            countToUse = roomsAvailable.Count;
+        }
 
-        newBooking.BookingPrice = newBooking.CalculateBookingPrice(newBooking, selectedRoom, servicePrices);
-        bookingsMapped.Add(newBooking);
-    }
+        List<BookingCreateDTO> bookingsGenerated = KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(MaxCount, validUserIdList, allRooms, allExistingBookings);
 
-    _context.Booking.AddRange(bookingsMapped);
-    await _context.SaveChangesAsync();
-    return Ok(bookingsMapped);
+        List<Bookings> bookingsMapped = new List<Bookings>();
+        
+        List<Services> servicePrices = _context.Services.ToList();
+        
+        if (!servicePrices.Any())
+        {
+            return BadRequest("No Service-prices found. Cannot make booking.");
+        }
+        
+        foreach (BookingCreateDTO booking in bookingsGenerated)
+        {
+            Bookings newBooking = new Bookings()
+            {
+                UserId = booking.UserId,
+                PeopleCount = booking.PeopleCount,
+                BookingPrice = 0,
+                RoomId = booking.RoomId,
+                StartDate = booking.StartDate,
+                EndDate = booking.EndDate,
+                ServiceId = booking.ServiceId,
+            };
+
+            Rooms? SelectedRoom = roomsAvailable.Find(r => r.Id == booking.RoomId);
+
+            newBooking.BookingPrice = newBooking.CalculateBookingPrice(newBooking, SelectedRoom, servicePrices);
+            bookingsMapped.Add(newBooking);
+        }
+
+        _context.Booking.AddRange(bookingsMapped);
+        await _context.SaveChangesAsync();
+        return Ok(bookingsMapped);
 }
 
     [HttpPost("GenTickets")]

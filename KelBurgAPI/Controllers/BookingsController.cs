@@ -2,6 +2,8 @@
 using KelBurgAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Reflection;
 
 namespace KelBurgAPI.Controllers;
 
@@ -50,7 +52,7 @@ public class BookingsController : ControllerBase
 
         if (!RoomAvailableAtDate)
         {
-            return BadRequest($"Room is not available between {bookingToBeCreated.StartDate} and {bookingToBeCreated.EndDate}");
+            return BadRequest($"Room is not available at this date");
         }
         
         List<Services> servicePricesDicts = _context.Services.ToList();
@@ -63,13 +65,27 @@ public class BookingsController : ControllerBase
     }
 
     [HttpGet("read")]
-    public async Task<ActionResult<IEnumerable<Bookings>>> GetBookings(int? roomId, int pageSize = 100, int pageNumber = 1)
+    public async Task<ActionResult<IEnumerable<Bookings>>> GetBookings(int? UserId, int? RoomId, int pageSize = 100, int pageNumber = 1)
     {
         List<Bookings> bookings = new List<Bookings>();
         
-        if (roomId != null)
+        if (UserId != null && RoomId == null)
         {
-            bookings = await _context.Booking.Where(c => c.RoomId == roomId)
+            bookings = await _context.Booking.Where(c => c.UserId == UserId)
+                .Skip((pageNumber-1)*pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+        else if (UserId == null && RoomId != null)
+        {
+            bookings = await _context.Booking.Where(c => c.RoomId == RoomId)
+                .Skip((pageNumber-1)*pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        } 
+        else if (UserId != null && RoomId != null)
+        {
+            bookings = await _context.Booking.Where(c => c.RoomId == RoomId && c.UserId == UserId)
                 .Skip((pageNumber-1)*pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -79,23 +95,60 @@ public class BookingsController : ControllerBase
             bookings = await _context.Booking
                 .Skip((pageNumber-1)*pageSize)
                 .Take(pageSize)
-                .ToListAsync();  
+                .ToListAsync();
         }
         
         return Ok(bookings);
     }
     
-    [HttpGet("findByUserId")]
-    public async Task<ActionResult<Bookings>> FindByUserId(int UserId)
+    [HttpPut("update")]
+    public async Task<ActionResult<Bookings>> EditBooking(int bookingIdToChange, [FromQuery] BookingEditDTO editedBooking)
     {
-        List<Bookings> foundBookings = await _context.Booking.Where(c => c.UserId == UserId).ToListAsync();
-
-        if (foundBookings == null)
+        Bookings bookingToEdit = await _context.Booking.FindAsync(bookingIdToChange);
+        
+        Rooms selectedRoom = await _context.Rooms.FindAsync(editedBooking.RoomId);
+        List<Services> services = await _context.Services.ToListAsync();
+        
+        List<Bookings> allExistingBookings = _context.Booking.ToList();
+        
+        if (allExistingBookings.Contains(bookingToEdit))
         {
-            return NotFound("No bookings found");
+            allExistingBookings.Remove(bookingToEdit);
         }
         
-        return Ok(foundBookings);
+        if (bookingToEdit == null)
+        {
+            return NotFound();
+        }
+
+        PropertyInfo[] dtoProperties = typeof(BookingEditDTO).GetProperties();
+        PropertyInfo[] existingProperties = typeof(Bookings).GetProperties();
+
+        foreach (PropertyInfo dtoProp in dtoProperties)
+        {
+            object? newValue = dtoProp.GetValue(editedBooking);
+            if (newValue != null)
+            {
+                PropertyInfo? existingProp = existingProperties.FirstOrDefault(p => p.Name == dtoProp.Name);
+                if (existingProp != null && existingProp.CanWrite)
+                {
+                    existingProp.SetValue(bookingToEdit, newValue);
+                }
+            }
+        }
+        
+        if (selectedRoom != null)
+        {
+            if (!selectedRoom.IsRoomAvailableAtDate(allExistingBookings, selectedRoom, bookingToEdit))
+            {
+                return BadRequest("Room is not available at this date");
+            }
+        }
+        
+        bookingToEdit.BookingPrice = bookingToEdit.CalculateBookingPrice(bookingToEdit, selectedRoom, services);
+
+        await _context.SaveChangesAsync();
+        return Ok(bookingToEdit);
     }
 
     [HttpDelete("delete")]
@@ -105,8 +158,9 @@ public class BookingsController : ControllerBase
 
         if (bookingsToDelete == null)
         {
-            return NotFound();
+            return NotFound("Booking not found");
         }
+        
         _context.Booking.Remove(await _context.Booking.FindAsync(bookingId));
         await _context.SaveChangesAsync();
         return Ok(bookingsToDelete);

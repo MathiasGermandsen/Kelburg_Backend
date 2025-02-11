@@ -78,7 +78,7 @@ public class ServicesController : ControllerBase
         
         _context.Services.AddRange(services);
         await _context.SaveChangesAsync();
-        return services;
+        return Ok(services);
     }
 
     [HttpGet("read")]
@@ -86,5 +86,14 @@ public class ServicesController : ControllerBase
     {
         List<Services> services = _context.Services.ToList();
         return services;
+    }
+
+    [HttpPatch("changePrice")]
+    public async Task<ActionResult<Services>> ChangePriceId(int serviceToChangeId, int newPrice)
+    {
+        Services service = await _context.Services.FindAsync(serviceToChangeId);
+        service.PricePrPersonPrNight = newPrice;
+        await _context.SaveChangesAsync();
+        return Ok(service);
     }
 }

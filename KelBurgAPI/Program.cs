@@ -2,17 +2,18 @@ using KelBurgAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 namespace KelBurgAPI
 {
-    public class program
+    public class Program
     {
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            
+
+            // 1) Add services to the container.
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
@@ -20,7 +21,7 @@ namespace KelBurgAPI
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     In = ParameterLocation.Header,
-                    Description = "Indtast 'Bearer' [mellemrum] og din JWT token for at få adgang.",
+                    Description = "Enter 'Bearer' [space] and your JWT token.",
                     Name = "Authorization",
                     Type = SecuritySchemeType.ApiKey
                 });
@@ -39,31 +40,31 @@ namespace KelBurgAPI
                     }
                 });
             });
-            
-            
-            IConfiguration Configuration = builder.Configuration;
 
-            string connectionString = Configuration.GetConnectionString("DefaultConnection") 
-                                      ?? GetSecret("DefaultConnection");
-
+            // 2) Configure database
+            var configuration = builder.Configuration;
+            string? connectionString = configuration.GetConnectionString("DefaultConnection") 
+                                       ?? Environment.GetEnvironmentVariable("DefaultConnection");
             builder.Services.AddDbContext<DatabaseContext>(options =>
                 options.UseNpgsql(connectionString));
-            
-            // Configure JWT Authentication
-            builder.Services.AddAuthentication(x =>
+
+       
+
+            // 3) Configure JWT authentication
+            builder.Services.AddAuthentication(options =>
             {
-                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(x =>
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
             {
-                x.TokenValidationParameters = new TokenValidationParameters
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidIssuer = Configuration["JwtSettings:Issuer"] ?? GetSecret("Issuer"),
-                    ValidAudience = Configuration["JwtSettings:Audience"] ?? GetSecret("Audience"),
+                    ValidIssuer = configuration["JwtSettings:Issuer"],
+                    ValidAudience = configuration["JwtSettings:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey
                     (
-                        Encoding.UTF8.GetBytes(Configuration["JwtSettings:Key"] ?? GetSecret("Key"))
+                        Encoding.UTF8.GetBytes(configuration["JwtSettings:Key"])
                     ),
                     ValidateIssuer = true,
                     ValidateAudience = true,
@@ -71,37 +72,28 @@ namespace KelBurgAPI
                     ValidateIssuerSigningKey = true
                 };
             });
-            
-            
-            
-            
+
+            // 4) Build the app
             var app = builder.Build();
-            
+
+            // 5) Configure middleware
             app.UseSwagger();
             app.UseSwaggerUI();
-            
+
             app.UseHttpsRedirection();
-            
+
+            app.UseAuthentication();  // Make sure to call UseAuthentication
             app.UseAuthorization();
-            
+
+            // 6) Map controllers
             app.MapControllers();
-            
+
+            // 7) Run
             app.Run();
-        }
-
-        public static string GetSecret(string SecreteKey)
-        {
-            string secretFilePath = Environment.GetEnvironmentVariable(SecreteKey);
-            string connectionString = null;
-
-            if (!string.IsNullOrEmpty(secretFilePath) && File.Exists(secretFilePath))
-            {
-                return File.ReadAllText(secretFilePath).Trim(); // Trim to remove unnecessary spaces or newlines
-            }
-            else
-            {
-                return null;
-            }
+            
+            Console.WriteLine($"JWT Key: {configuration["JwtSettings:Key"]}");
+            Console.WriteLine($"JWT Issuer: {configuration["JwtSettings:Issuer"]}");
+            Console.WriteLine($"JWT Audience: {configuration["JwtSettings:Audience"]}");
         }
     }
 }

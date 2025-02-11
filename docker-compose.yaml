@@ -1,62 +1,31 @@
-﻿version: "3.8"
+﻿version: '3.8'
 
 services:
   db:
     image: postgres:15-alpine
     container_name: kelburg_db
     environment:
-      POSTGRES_USER: /run/secrets/POSTGRES_USER
-      POSTGRES_PASSWORD: /run/secrets/POSTGRES_PASSWORD
-      POSTGRES_DB: /run/secrets/POSTGRES_DB
+      POSTGRES_DB: 
+      POSTGRES_USER: 
+      POSTGRES_PASSWORD: /run/secrets/db_password
+    secrets:
+      - db_password
     ports:
       - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     volumes:
       - db_data:/var/lib/postgresql/data
 
-  app:
-    build:
-      context: .
-    image: api_app_image:latest
+  api:
+    image: localhost:5000/kelburg_api:latest
     container_name: kelburg_api
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      DefaultConnection: /run/secrets/DefaultConnection
-      Issuer: /run/secrets/Issuer
-      Audience: /run/secrets/Audience
-      Key: /run/secrets/Key
-    secrets:
-      - DefaultConnection
-      - Issuer
-      - Audience
-      - Key
-      - POSTGRES_DB
-      - POSTGRES_PASSWORD
-      - POSTGRES_USER
-    ports:
-      - "8080:8080"
     depends_on:
       - db
+    ports:
+      - "8080:80"
+        
+secrets:
+  db_password:
+    external: true
 
 volumes:
   db_data:
-
-secrets:
-  DefaultConnection:
-    external: true
-  Issuer:
-    external: true
-  Audience:
-    external: true
-  Key:
-    external: true
-  POSTGRES_USER:
-    external: true
-  POSTGRES_PASSWORD:
-    external: true
-  POSTGRES_DB:
-    external: true

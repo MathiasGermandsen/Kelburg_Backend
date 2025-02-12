@@ -2,30 +2,31 @@
 
 services:
   db:
-    image: postgres:15-alpine
-    container_name: kelburg_db
+    image: postgres:17-alpine
     environment:
-      POSTGRES_DB: 
-      POSTGRES_USER: 
-      POSTGRES_PASSWORD: /run/secrets/db_password
-    secrets:
-      - db_password
+      POSTGRES_DB: kelburgdb
+      POSTGRES_USER: kelburguser
+      POSTGRES_PASSWORD: database69420!
     ports:
       - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql/data
 
   api:
-    image: localhost:5000/kelburg_api:latest
+    image: kelburg_api:latest
     container_name: kelburg_api
+    environment:
+      DefaultConnection: /run/secrets/DefaultConnection
+    secrets:
+      - DefaultConnection
     depends_on:
       - db
     ports:
       - "8080:80"
-        
-secrets:
-  db_password:
-    external: true
 
+secrets:
+  DefaultConnection:
+    external: true
+        
 volumes:
-  db_data:
+  pg_data:

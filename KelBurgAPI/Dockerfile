@@ -1,4 +1,5 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+﻿# Use the .NET 8 SDK on Alpine (AMD64)
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 
 ARG BUILD_CONFIGURATION=Release
 
@@ -14,6 +15,7 @@ RUN dotnet publish "KelBurgAPI.csproj" \
     -o /app/publish \
     /p:UseAppHost=false
 
+# Runtime image (ASP.NET) for AMD64
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
@@ -23,7 +25,6 @@ WORKDIR /app
 COPY --from=build /app/publish .
 
 EXPOSE 80
-
 ENV ASPNETCORE_URLS=http://+:80
 
 RUN chown -R appuser:appgroup /app && chmod -R 755 /app

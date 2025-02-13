@@ -36,6 +36,7 @@ public class BookingsController : ControllerBase
             StartDate = booking.StartDate,
             EndDate = booking.EndDate,
             ServiceId = booking.ServiceId,
+            CarId = booking.CarId,
         };
 
         List<Bookings> allExistingBookings = _context.Booking.ToList();
@@ -44,16 +45,28 @@ public class BookingsController : ControllerBase
         Rooms SelectedRoom = _context.Rooms.Find(booking.RoomId);
 
         bool RoomAvailableAtDate = true;
-
+        
+        bool CarAvailableAtDate = true; //This is to make sure that a car is always available until its in a booking
+        
         if (allExistingBookings.Any())
         {
             RoomAvailableAtDate =
                 roomInstance.IsRoomAvailableAtDate(allExistingBookings, SelectedRoom, bookingToBeCreated);
+            
+            //check if a car is available
+            CarAvailableAtDate = !allExistingBookings.Any(b =>
+                b.CarId == booking.CarId &&
+                (booking.StartDate < b.EndDate && booking.EndDate > b.StartDate));
         }
-
+        
         if (!RoomAvailableAtDate)
         {
             return BadRequest($"Room is not available at this date");
+        }
+
+        if (!CarAvailableAtDate)
+        {
+            return BadRequest($"Car is not available at this date");
         }
 
         List<Services> servicePricesDicts = _context.Services.ToList();

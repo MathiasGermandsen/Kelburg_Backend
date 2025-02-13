@@ -36,8 +36,7 @@ namespace KelBurgAPI.Controllers
                 Type = hotelCars.Type,
             };
             _context.HotelCars.Add(carsToBeCreated);
-            await _context.SaveChangesAsync();
-            // return CreatedAtAction(nameof(GetCars)
+            await _context.SaveChangesAsync();  
             return carsToBeCreated;
         } 
     }

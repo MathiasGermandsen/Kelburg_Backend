@@ -19,7 +19,8 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<ActionResult<Rooms>> CreateBooking([FromBody] BookingCreateDTO booking) // Change to FromQuery when doing frontend
+    public async Task<ActionResult<Rooms>>
+        CreateBooking([FromBody] BookingCreateDTO booking) // Change to FromQuery when doing frontend
     {
         if (booking == null)
         {
@@ -59,9 +60,9 @@ public class BookingsController : ControllerBase
 
         bookingToBeCreated.BookingPrice =
             bookingToBeCreated.CalculateBookingPrice(bookingToBeCreated, SelectedRoom, servicePricesDicts);
-
+        
         _context.Booking.Add(bookingToBeCreated);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();        
         return CreatedAtAction(nameof(GetBookings), new { id = bookingToBeCreated.Id }, bookingToBeCreated);
     }
 
@@ -168,5 +169,4 @@ public class BookingsController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(bookingsToDelete);
     }
-
 }

@@ -9,7 +9,9 @@ public class Bookings : Common
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public int ServiceId { get; set; }
-
+    public int? CarId { get; set; }
+    
+    
     public int CalculateBookingPrice(Bookings currentBooking, Rooms selectedRoom, List<Services> services)
     {
         int bookingPrice = 0;
@@ -46,6 +48,7 @@ public class BookingCreateDTO
     public DateTime StartDate { get; set; } = DateTime.Today.Date;
     public DateTime EndDate { get; set; } = DateTime.Today.Date;
     public int ServiceId { get; set; }
+    public int? CarId { get; set; } 
 }
 
 public class BookingEditDTO

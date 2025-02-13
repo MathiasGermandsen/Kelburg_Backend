@@ -21,7 +21,7 @@ namespace KelBurgAPI.BogusGenerators
 
 
         public static List<BookingCreateDTO> GenerateBookings(int count, List<int> validUserIds, List<Rooms> allRooms,
-            List<Bookings> allExistingBookings)
+            List<Bookings> allExistingBookings, List<HotelCars> allCars, bool withCar, int carId)
         {
             List<BookingCreateDTO> newlyCreatedBookings = new List<BookingCreateDTO>();
             Faker<BookingCreateDTO> faker = new Faker<BookingCreateDTO>()
@@ -31,6 +31,7 @@ namespace KelBurgAPI.BogusGenerators
                     DateTime startDate = f.Date.Soon().ToUniversalTime();
                     int numberOfDays = f.Random.Number(3, 14);
                     DateTime endDate = startDate.AddDays(numberOfDays).ToUniversalTime();
+
 
                     if (endDate <= startDate)
                     {
@@ -55,6 +56,22 @@ namespace KelBurgAPI.BogusGenerators
                         RoomId = selectedRoom.Id
                     };
 
+                    if (withCar)
+                    {
+                        List<Bookings> allBookingsAlsoNew = new List<Bookings>(allExistingBookings);
+                        allBookingsAlsoNew.AddRange(newlyCreatedBookings.Select(b => new Bookings
+                        {
+                            CarId = b.CarId,
+                            StartDate = b.StartDate,
+                            EndDate = b.EndDate
+                        }));
+                        
+                        (startDate, endDate) = FindNextAvailableCar(startDate, numberOfDays, allBookingsIncludingNew, allCars);
+                        
+                        HotelCars selectedCar = f.PickRandom(allCars);
+                        newBooking.CarId = selectedCar.Id;
+                    }
+
                     newlyCreatedBookings.Add(newBooking);
                     return newBooking;
                 })
@@ -68,14 +85,49 @@ namespace KelBurgAPI.BogusGenerators
                     {
                         return 1;
                     }
-                    
-                    int maxOccupancy = RoomOccupancyLimits.ContainsKey(assignedRoom.RoomType) ? RoomOccupancyLimits[assignedRoom.RoomType] : 12;
+
+                    int maxOccupancy = RoomOccupancyLimits.ContainsKey(assignedRoom.RoomType)
+                        ? RoomOccupancyLimits[assignedRoom.RoomType]
+                        : 12;
                     return f.Random.Number(1, assignedRoom.Size);
                 });
-            
+
             return faker.Generate(count);
         }
 
+        private static (DateTime startDate, DateTime endDate) FindNextAvailableCar(DateTime startDate, int numberOfDays,
+            List<Bookings> allBookings, List<HotelCars> allCars)
+        {
+            DateTime highestEndDate = new DateTime();
+            while (true)
+            {
+                Bookings? overlappingBooking = allBookings
+                    .Where(b => b.CarId != null && b.CarId == allCars.First().Id)//checking only for when the car is booked
+                    .Where(b => b.CheckBookingOverlap(b, new Bookings
+                    {
+                        CarId = allCars.First().Id, StartDate = startDate,
+                        EndDate = startDate.AddDays(numberOfDays)
+                    }))
+                    .OrderBy(b => b.EndDate)
+                    .FirstOrDefault();
+
+                if (overlappingBooking == null)
+                {
+                    break;
+                }
+                
+                Random random = new Random();
+
+                if (highestEndDate < overlappingBooking.EndDate)
+                {
+                    highestEndDate = overlappingBooking.EndDate;
+                }
+                
+                startDate = highestEndDate.AddHours(random.Next(3, 24));
+            }
+            return (startDate, startDate.AddDays(numberOfDays));
+        }
+        
         private static (DateTime startDate, DateTime endDate) FindNextAvailableDates(Rooms selectedRoom,
             DateTime startDate, int numberOfDays, List<Bookings> allBookings)
         {
@@ -107,6 +159,7 @@ namespace KelBurgAPI.BogusGenerators
 
                 startDate = highestEndDate.AddHours(random.Next(3, 24));
             }
+
             return (startDate, startDate.AddDays(numberOfDays));
         }
     }

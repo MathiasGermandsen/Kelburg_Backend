@@ -20,7 +20,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<ActionResult<Rooms>> CreateBooking([FromBody] BookingCreateDTO booking) // Change to FromQuery when doing frontend
+    public async Task<ActionResult<Rooms>> CreateBooking([FromQuery] BookingCreateDTO booking)
     {
         if (booking == null)
         {
@@ -65,39 +65,33 @@ public class BookingsController : ControllerBase
     }
 
     [HttpGet("read")]
-    public async Task<ActionResult<IEnumerable<Bookings>>> GetBookings(int? UserId, int? RoomId, int pageSize = 100, int pageNumber = 1)
+    public async Task<ActionResult<IEnumerable<Bookings>>> GetBookings(int? BookingId, int? UserId, int? RoomId, int pageSize = 100, int pageNumber = 1)
     {
-        List<Bookings> bookings = new List<Bookings>();
-        
-        if (UserId != null && RoomId == null)
+        if (pageNumber < 1 || pageSize < 1)
         {
-            bookings = await _context.Booking.Where(c => c.UserId == UserId)
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        }
-        else if (UserId == null && RoomId != null)
-        {
-            bookings = await _context.Booking.Where(c => c.RoomId == RoomId)
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        } 
-        else if (UserId != null && RoomId != null)
-        {
-            bookings = await _context.Booking.Where(c => c.RoomId == RoomId && c.UserId == UserId)
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        }
-        else
-        {
-            bookings = await _context.Booking
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            return BadRequest("PageNumber and size must be greater than 0");
         }
         
+        IQueryable<Bookings> query = _context.Booking.AsQueryable();
+
+        if (BookingId.HasValue)
+        {
+            query = query.Where(c => c.Id == BookingId);
+        }
+        if (UserId.HasValue)
+        {
+            query = query.Where(c => c.UserId == UserId);
+        }
+        if (RoomId.HasValue)
+        {
+            query = query.Where(c => c.RoomId == RoomId);
+        }
+
+        List<Bookings> bookings = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
         return Ok(bookings);
     }
     

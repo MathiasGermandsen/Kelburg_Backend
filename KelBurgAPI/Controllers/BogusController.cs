@@ -105,34 +105,32 @@ public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount
         }
 
         List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
-
-        List<Bookings> allExistingBookings = _context.Booking.ToList();
-        List<Rooms> allRooms = _context.Rooms.ToList();
-        Rooms roomInstance = new Rooms();
-        
-        List<Rooms> roomsAvailable = roomInstance.GetAvailableRooms(allExistingBookings, allRooms);
-
-        int countToUse = 0;
-
-        if (roomsAvailable.Count > MaxCount)
-        {
-            countToUse = MaxCount;
-        }
-        else
-        {
-            countToUse = roomsAvailable.Count;
-        }
-
-        List<BookingCreateDTO> bookingsGenerated = KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(MaxCount, validUserIdList, allRooms, allExistingBookings);
-
-        List<Bookings> bookingsMapped = new List<Bookings>();
-        
         List<Services> servicePrices = _context.Services.ToList();
+        List<Rooms> allRooms = _context.Rooms.ToList();
+
+        if (!validUserIdList.Any())
+        {
+            return BadRequest("No Users in Database!");
+        }
+
+        if (!allRooms.Any())
+        {
+            return BadRequest("No Rooms in Database!");
+        }
         
         if (!servicePrices.Any())
         {
             return BadRequest("No Service-prices found. Cannot make booking.");
         }
+
+        List<Bookings> allExistingBookings = _context.Booking.ToList();
+        Rooms roomInstance = new Rooms();
+        
+        int countToUse = 0;
+
+        List<BookingCreateDTO> bookingsGenerated = KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(MaxCount, validUserIdList, allRooms, allExistingBookings);
+
+        List<Bookings> bookingsMapped = new List<Bookings>();
         
         foreach (BookingCreateDTO booking in bookingsGenerated)
         {
@@ -147,7 +145,7 @@ public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount
                 ServiceId = booking.ServiceId,
             };
 
-            Rooms? SelectedRoom = roomsAvailable.Find(r => r.Id == booking.RoomId);
+            Rooms? SelectedRoom = allRooms.Find(r => r.Id == booking.RoomId);
 
             newBooking.BookingPrice = newBooking.CalculateBookingPrice(newBooking, SelectedRoom, servicePrices);
             bookingsMapped.Add(newBooking);
@@ -165,7 +163,14 @@ public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount
         {
             return BadRequest("Count must be greater than zero.");
         }
+        
         List<int> ValidUserIdList = _context.Users.Select(u => u.Id).ToList();
+
+        if (!ValidUserIdList.Any())
+        {
+            return BadRequest("No Users in Database!");
+        }
+        
         List<TicketCreateDTO> ticketsGenerated = KelBurgAPI.BogusGenerators.BogusTicket.GenerateRooms(count, ValidUserIdList);
         List<Tickets> ticketsMappedList = new List<Tickets>();
 

@@ -42,16 +42,17 @@ public class BookingsController : ControllerBase
         List<Bookings> allExistingBookings = _context.Booking.ToList();
         Rooms roomInstance = new Rooms();
 
-        Rooms SelectedRoom = _context.Rooms.Find(booking.RoomId);
+        Rooms selectedRoom = _context.Rooms.Find(booking.RoomId);
+        HotelCars selectedCar = _context.HotelCars.Find(booking.CarId);
 
         bool RoomAvailableAtDate = true;
         
-        bool CarAvailableAtDate = true; //This is to make sure that a car is always available until its in a booking
+        bool CarAvailableAtDate = true; //This is to make sure that a car is always available until it's in a booking
         
         if (allExistingBookings.Any())
         {
             RoomAvailableAtDate =
-                roomInstance.IsRoomAvailableAtDate(allExistingBookings, SelectedRoom, bookingToBeCreated);
+                roomInstance.IsRoomAvailableAtDate(allExistingBookings, selectedRoom, bookingToBeCreated);
             
             //check if a car is available
             CarAvailableAtDate = !allExistingBookings.Any(b =>
@@ -72,7 +73,7 @@ public class BookingsController : ControllerBase
         List<Services> servicePricesDicts = _context.Services.ToList();
 
         bookingToBeCreated.BookingPrice =
-            bookingToBeCreated.CalculateBookingPrice(bookingToBeCreated, SelectedRoom, servicePricesDicts);
+            bookingToBeCreated.CalculateBookingPrice(bookingToBeCreated, selectedRoom, selectedCar, servicePricesDicts);
         
         _context.Booking.Add(bookingToBeCreated);
         await _context.SaveChangesAsync();        
@@ -124,6 +125,8 @@ public class BookingsController : ControllerBase
         Bookings bookingToEdit = await _context.Booking.FindAsync(bookingIdToChange);
 
         Rooms selectedRoom = await _context.Rooms.FindAsync(editedBooking.RoomId);
+        HotelCars selectedCar = await _context.HotelCars.FindAsync(editedBooking.CarId);
+        
         List<Services> services = await _context.Services.ToListAsync();
 
         List<Bookings> allExistingBookings = _context.Booking.ToList();
@@ -162,7 +165,7 @@ public class BookingsController : ControllerBase
             }
         }
 
-        bookingToEdit.BookingPrice = bookingToEdit.CalculateBookingPrice(bookingToEdit, selectedRoom, services);
+        bookingToEdit.BookingPrice = bookingToEdit.CalculateBookingPrice(bookingToEdit, selectedRoom, selectedCar, services);
 
         await _context.SaveChangesAsync();
         return Ok(bookingToEdit);

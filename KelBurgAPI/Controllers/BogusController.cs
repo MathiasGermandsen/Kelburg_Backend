@@ -99,166 +99,61 @@ public class BogusController : ControllerBase
         }
 
         List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
-        DateTime today = DateTime.Now;
-
-        List<Bookings> allExistingBookings = _context.Booking.ToList();
         List<Rooms> allRooms = _context.Rooms.ToList();
-
-        Dictionary<int, DateTime> latestEndDates = _context.Booking
-            .GroupBy(b => b.RoomId)
-            .Select(g => new { RoomId = g.Key, LatestEndDate = g.Max(b => b.EndDate) })
-            .ToDictionary(x => x.RoomId, x => x.LatestEndDate);
-
-        int countToUse = MaxCount;
-
-        List<BookingCreateDTO> bookingsGenerated =
-            KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(countToUse, validUserIdList, allRooms,
-                latestEndDates);
-
-        List<Bookings> bookingsMapped = new List<Bookings>();
         List<Services> servicePrices = _context.Services.ToList();
-
-        if (!servicePrices.Any())
-        {
-            return BadRequest("No Service-prices found. Cannot make booking.");
-        }
-
-        foreach (BookingCreateDTO booking in bookingsGenerated)
-        {
-            Bookings newBooking = new Bookings()
-            {
-                UserId = booking.UserId,
-                PeopleCount = booking.PeopleCount,
-                BookingPrice = 0,
-                RoomId = booking.RoomId,
-                StartDate = booking.StartDate,
-                EndDate = booking.EndDate,
-                ServiceId = booking.ServiceId,
-            };
-
-            if (latestEndDates.ContainsKey(newBooking.RoomId))
-            {
-                DateTime latestEndDate = latestEndDates[newBooking.RoomId];
-                if (newBooking.StartDate < latestEndDate.AddHours(3))
-                {
-                    newBooking.EndDate = latestEndDate.AddHours(3);
-                    newBooking.EndDate = newBooking.StartDate.AddHours(3);
-                }
-                latestEndDates[newBooking.RoomId] = newBooking.EndDate;
-            }
-
-            Rooms? SelectedRoom = allRooms.Find(r => r.Id == booking.RoomId);
-            newBooking.BookingPrice = newBooking.CalculateBookingPrice(newBooking, SelectedRoom, servicePrices);
-            bookingsMapped.Add(newBooking);
-        }
-
-        _context.Booking.AddRange(bookingsMapped);
-        await _context.SaveChangesAsync();
-        return Ok(bookingsMapped);
-        return BadRequest("Count must be greater than zero.");
-    }
-
-    Console.WriteLine($"MaxCount received: {MaxCount}");
-
-    List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
-    if (!validUserIdList.Any())
-    {
-        return BadRequest("No valid users found. Cannot generate bookings.");
-    }
-
-    List<Bookings> allExistingBookings = _context.Booking.ToList();
-    List<Rooms> allRooms = _context.Rooms.ToList();
-    Rooms roomInstance = new Rooms();
-    
-    List<Rooms> roomsAvailable = roomInstance.GetAvailableRooms(allExistingBookings, allRooms);
-    if (!roomsAvailable.Any())
-    {
-        return BadRequest("No available rooms found. Cannot generate bookings.");
-    }
-
-    int countToUse = (roomsAvailable.Count > MaxCount) ? MaxCount : roomsAvailable.Count;
-
-    if (countToUse == 0)
-    {
-        return BadRequest("Not enough rooms available to create bookings.");
-    }
-
-    List<BookingCreateDTO> bookingsGenerated =
-        KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(countToUse, validUserIdList, roomsAvailable);
-
-    List<Bookings> bookingsMapped = new List<Bookings>();
-    List<Services> servicePrices = _context.Services.ToList();
-
-    if (!servicePrices.Any())
-    {
-        return BadRequest("No Service-prices found. Cannot make booking.");
-    }
-
-    foreach (BookingCreateDTO booking in bookingsGenerated)
-    {
-        Rooms? selectedRoom = roomsAvailable.Find(r => r.Id == booking.RoomId);
-        if (selectedRoom == null)
-        {
-            return BadRequest("Count must be greater than zero.");
-        }
-
-        Console.WriteLine($"MaxCount received: {MaxCount}");
-
-        List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
+        
         if (!validUserIdList.Any())
         {
             return BadRequest("No valid users found. Cannot generate bookings.");
         }
-
-        List<Bookings> allExistingBookings = _context.Booking.ToList();
-        List<Rooms> allRooms = _context.Rooms.ToList();
-
-        List<HotelCars> allCars = _context.HotelCars.ToList();
-
-
-        Rooms roomInstance = new Rooms();
-
-        List<Rooms> roomsAvailable = roomInstance.GetAvailableRooms(allExistingBookings, allRooms);
-        if (!roomsAvailable.Any())
+        
+        if (!allRooms.Any())
         {
-            return BadRequest("No available rooms found. Cannot generate bookings.");
+            return BadRequest("No rooms found. Cannot generate bookings.");
         }
-
-        int countToUse = (roomsAvailable.Count > MaxCount) ? MaxCount : roomsAvailable.Count;
-
-        if (countToUse == 0)
-        {
-            return BadRequest("Not enough rooms available to create bookings.");
-        }
-
-
-        List<Bookings> bookingsMapped = new List<Bookings>();
-        List<Services> servicePrices = _context.Services.ToList();
-
+        
         if (!servicePrices.Any())
         {
             return BadRequest("No Service-prices found. Cannot make booking.");
         }
 
+        List<Bookings> allExistingBookings = _context.Booking.ToList();
+        List<HotelCars> allCars = _context.HotelCars.ToList();
+        
         List<BookingCreateDTO> bookingsGenerated = new List<BookingCreateDTO>();
 
-        for (int i = 0; i <= MaxCount; i++)
+        for (int i = 1; i <= MaxCount; i++)
         {
             Random rand = new Random();
             bool withCar = rand.Next(0, 3) == 2 ? true : false;
 
-            int carId = allCars[rand.Next(0, allCars.Count - 1)].Id;
+            int carId = allCars.Select(c => c.Id).OrderBy(_ => rand.Next()).First();
 
             List<BookingCreateDTO> bookingGenerated =
-                KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(1, validUserIdList, allRooms,
-                    allExistingBookings, allCars, withCar, carId);
+                KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(1, validUserIdList, allRooms, allExistingBookings, allCars, withCar, carId);
+            
+            Bookings bookingGeneratedMapped = new Bookings()
+            {
+                UserId = bookingGenerated[0].UserId,
+                PeopleCount = bookingGenerated[0].PeopleCount,
+                BookingPrice = 0,
+                RoomId = bookingGenerated[0].RoomId,
+                StartDate = bookingGenerated[0].StartDate,
+                EndDate = bookingGenerated[0].EndDate,
+                ServiceId = bookingGenerated[0].ServiceId,
+                CarId = bookingGenerated[0].CarId,
+            };
             
             bookingsGenerated.AddRange(bookingGenerated);
+            allExistingBookings.Add(bookingGeneratedMapped);
         }
+        
+        List<Bookings> bookingsMapped = new List<Bookings>();
 
         foreach (BookingCreateDTO booking in bookingsGenerated)
         {
-            Rooms? selectedRoom = roomsAvailable.Find(r => r.Id == booking.RoomId);
+            Rooms? selectedRoom = allRooms.Find(r => r.Id == booking.RoomId);
+            HotelCars? selectedCar = allCars.Find(c => c.Id == booking.CarId);
             if (selectedRoom == null)
             {
                 return BadRequest($"Room ID {booking.RoomId} not found.");
@@ -276,7 +171,7 @@ public class BogusController : ControllerBase
                 CarId = booking.CarId,
             };
 
-            newBooking.BookingPrice = newBooking.CalculateBookingPrice(newBooking, selectedRoom, servicePrices);
+            newBooking.BookingPrice = newBooking.CalculateBookingPrice(newBooking, selectedRoom, selectedCar, servicePrices);
             bookingsMapped.Add(newBooking);
         }
 

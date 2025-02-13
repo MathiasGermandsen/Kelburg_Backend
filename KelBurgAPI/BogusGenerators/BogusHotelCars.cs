@@ -28,7 +28,7 @@ public class BogusHotelCars
             .RuleFor(h => h.Fuel, f => f.Vehicle.Fuel())
             .RuleFor(h => h.Type, f => f.PickRandom(CarTypeSize.Keys.ToList()))
             .RuleFor(h => h.Size, (f, h) => CarTypeSize[h.Type])
-            .RuleFor(h => h.PricePrNight, (f, h) => f.Random.Int(10, 30)*h.Size);
+            .RuleFor(h => h.PricePrNight, (f, h) => f.Random.Int(50, 110)*h.Size);
 
         return faker.Generate(count);
     }

@@ -12,7 +12,7 @@ public class Bookings : Common
     public int? CarId { get; set; }
     
     
-    public int CalculateBookingPrice(Bookings currentBooking, Rooms selectedRoom, List<Services> services)
+    public int CalculateBookingPrice(Bookings currentBooking, Rooms selectedRoom, HotelCars selectedCar, List<Services> services)
     {
         int bookingPrice = 0;
         int vacationDays = (currentBooking.EndDate - currentBooking.StartDate).Days;
@@ -27,9 +27,14 @@ public class Bookings : Common
         
         int totalServicePrices = selectedService.PricePrPersonPrNight * currentBooking.PeopleCount * vacationDays;        
         int totalRoomPrice = selectedRoom.PricePrNight * vacationDays;
+        int totalCarPrice = 0;
 
-        bookingPrice += totalServicePrices;
-        bookingPrice += totalRoomPrice;
+        if (selectedCar != null)
+        {
+            totalCarPrice = selectedCar.PricePrNight * vacationDays;
+        }
+        
+        bookingPrice = totalServicePrices + totalRoomPrice + totalCarPrice;
         
         return bookingPrice;
     }
@@ -58,5 +63,6 @@ public class BookingEditDTO
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public int ServiceId { get; set; }
+    public int? CarId { get; set; }
 }
 

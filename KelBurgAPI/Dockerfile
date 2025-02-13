@@ -1,24 +1,25 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
-USER $APP_UID
-WORKDIR /app
-EXPOSE 80
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["KelBurgAPI/KelBurgAPI.csproj", "KelBurgAPI/"]
-RUN dotnet restore "KelBurgAPI/KelBurgAPI.csproj"
+COPY ["KelBurgAPI.csproj", "./"]
+RUN dotnet restore "KelBurgAPI.csproj"
 
 COPY . .
-WORKDIR "/src/KelBurgAPI"
-RUN dotnet build "KelBurgAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet publish "KelBurgAPI.csproj" \
+    -c $BUILD_CONFIGURATION \
+    -o /app/publish \
+    /p:UseAppHost=false
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "KelBurgAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
 
-FROM base AS final
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+COPY --from=build /app/publish .
+
+RUN chown -R appuser:appgroup /app && chmod -R 755 /app
+USER appuser
+
 ENTRYPOINT ["dotnet", "KelBurgAPI.dll"]

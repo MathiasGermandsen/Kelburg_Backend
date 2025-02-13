@@ -12,7 +12,7 @@ RUN dotnet publish "KelBurgAPI.csproj" \
     -o /app/publish \
     /p:UseAppHost=false
 
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:8.0.alpine AS final
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app

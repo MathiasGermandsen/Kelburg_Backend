@@ -39,40 +39,29 @@ public class RoomsController : ControllerBase
     }
 
     [HttpGet("read")]
-    public async Task<ActionResult<IEnumerable<Rooms>>> GetRooms(int roomId, int roomSize, int pageSize = 100, int pageNumber = 1)
+    public async Task<ActionResult<IEnumerable<Rooms>>> GetRooms(int? roomId, int? roomSize, int pageSize = 100, int pageNumber = 1)
     {
         if (pageNumber < 1 || pageSize < 1)
         {
             return BadRequest("PageNumber and size must be greater than 0");
         }
         
-        List<Rooms> rooms = new List<Rooms>();
-        
-        if (roomId > 0 && roomSize > 0)
+        IQueryable<Rooms> query = _context.Rooms.AsQueryable();
+
+        if (roomId.HasValue)
         {
-            rooms = await _context.Rooms.Where(c => c.Id == roomId && c.Size == roomSize)
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        } else if (roomId > 0 && roomSize <= 0)
-        {
-            rooms = await _context.Rooms.Where(c => c.Id == roomId)
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        } else if (roomId <= 0 && roomSize > 0)
-        {
-            rooms = await _context.Rooms.Where(c =>  c.Size == roomSize)
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        } else
-        {
-            rooms = await _context.Rooms
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            query = query.Where(c => c.Id == roomId);
         }
+        if (roomSize.HasValue)
+        {
+            query = query.Where(c => c.Size == roomSize);
+        }
+
+        List<Rooms> rooms = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
         return Ok(rooms);
     }
 

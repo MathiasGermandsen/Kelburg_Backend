@@ -41,23 +41,23 @@ public class TicketsController : ControllerBase
     [HttpGet("read")]
     public async Task<ActionResult<IReadOnlyList<Tickets>>> GetTickets(int? fromUserId, int pageSize = 100, int pageNumber = 1)
     {
-        List<Tickets> tickets = new List<Tickets>();
-        
-        if (fromUserId != null)
+        if (pageNumber < 1 || pageSize < 1)
         {
-            tickets = await _context.Tickets.Where(c => c.FromUser == fromUserId)
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        }
-        else
-        {
-            tickets = await _context.Tickets
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();  
+            return BadRequest("PageNumber and size must be greater than 0");
         }
         
+        IQueryable<Tickets> query = _context.Tickets.AsQueryable();
+
+        if (fromUserId.HasValue)
+        {
+            query = query.Where(c => c.FromUser == fromUserId);
+        }
+
+        List<Tickets> tickets = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
         return Ok(tickets);
     }
     

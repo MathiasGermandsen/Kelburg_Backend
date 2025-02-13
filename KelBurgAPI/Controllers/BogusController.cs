@@ -99,17 +99,17 @@ public class BogusController : ControllerBase
         }
 
         List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
-        List<Rooms> allRooms = _context.Rooms.ToList();
         List<Services> servicePrices = _context.Services.ToList();
-        
+        List<Rooms> allRooms = _context.Rooms.ToList();
+
         if (!validUserIdList.Any())
         {
-            return BadRequest("No valid users found. Cannot generate bookings.");
+            return BadRequest("No Users in Database!");
         }
-        
+
         if (!allRooms.Any())
         {
-            return BadRequest("No rooms found. Cannot generate bookings.");
+            return BadRequest("No Rooms in Database!");
         }
         
         if (!servicePrices.Any())
@@ -187,10 +187,15 @@ public class BogusController : ControllerBase
         {
             return BadRequest("Count must be greater than zero.");
         }
-
+        
         List<int> ValidUserIdList = _context.Users.Select(u => u.Id).ToList();
-        List<TicketCreateDTO> ticketsGenerated =
-            KelBurgAPI.BogusGenerators.BogusTicket.GenerateRooms(count, ValidUserIdList);
+
+        if (!ValidUserIdList.Any())
+        {
+            return BadRequest("No Users in Database!");
+        }
+        
+        List<TicketCreateDTO> ticketsGenerated = KelBurgAPI.BogusGenerators.BogusTicket.GenerateRooms(count, ValidUserIdList);
         List<Tickets> ticketsMappedList = new List<Tickets>();
 
         foreach (TicketCreateDTO ticket in ticketsGenerated)

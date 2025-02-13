@@ -66,69 +66,36 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("read")]
-    public async Task<ActionResult<IEnumerable<Users>>> GetUsers(string? FirstName, string? LastName, int pageSize = 100, int pageNumber = 1) 
+    public async Task<ActionResult<IEnumerable<Users>>> GetUsers(int? userId, string? FirstName, string? LastName, int pageSize = 100, int pageNumber = 1) 
     {
-        Users userInstance = new Users();
-        FirstName = userInstance.UpperFirstLetter(FirstName);
-        LastName = userInstance.UpperFirstLetter(LastName);
-        
         if (pageNumber < 1 || pageSize < 1)
         {
             return BadRequest("PageNumber and size must be greater than 0");
         }
         
-        int allPeople = _context.Users.Count();
-        int totalPages = (int)Math.Ceiling(allPeople / (double)pageSize);
+        IQueryable<Users> query = _context.Users.AsQueryable();
 
-        if (pageNumber > totalPages)
+        if (userId.HasValue)
         {
-            return NotFound("Page number exceeds total pages");
+            query = query.Where(c => c.Id == userId);
         }
         
-        List<Users> users = new List<Users>();
+        if (!string.IsNullOrEmpty(FirstName))
+        {
+            query = query.Where(c => c.FirstName.ToLower().Contains(FirstName.ToLower()));
+        }
         
-        if (FirstName != null && LastName == null)
+        if (!string.IsNullOrEmpty(LastName))
         {
-            users = await _context.Users.Where(c => c.FirstName == FirstName)
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-            
-        } else if (FirstName == null && LastName != null)
-        {
-            users = await _context.Users.Where(c => c.LastName == LastName)  
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-            
-        } else if (FirstName != null && LastName != null)
-        {
-            users = await _context.Users.Where(c => c.LastName == LastName && c.FirstName == FirstName)  
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            query = query.Where(c => c.LastName.ToLower().Contains(LastName.ToLower()));
         }
-        else
-        {
-            users = await _context.Users
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        }
+
+        List<Users> users = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
         return Ok(users);
-    }
-
-    [HttpGet("findById")]
-    public async Task<ActionResult<Users>> GetUserById([FromQuery] int id)
-    {
-        Users foundUser = await _context.Users.FindAsync(id);
-
-        if (foundUser == null)
-        {
-            return NotFound("User not found");
-        }
-        
-        return Ok(foundUser);
     }
     
     [HttpPost("login")]

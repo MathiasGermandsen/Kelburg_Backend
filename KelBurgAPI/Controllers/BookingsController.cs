@@ -19,8 +19,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<ActionResult<Rooms>>
-        CreateBooking([FromBody] BookingCreateDTO booking) // Change to FromQuery when doing frontend
+    public async Task<ActionResult<Rooms>> CreateBooking([FromQuery] BookingCreateDTO booking)
     {
         if (booking == null)
         {
@@ -31,7 +30,7 @@ public class BookingsController : ControllerBase
         {
             UserId = booking.UserId,
             PeopleCount = booking.PeopleCount,
-            BookingPrice = 0, // Will be calculated
+            BookingPrice = 0, 
             RoomId = booking.RoomId,
             StartDate = booking.StartDate,
             EndDate = booking.EndDate,
@@ -46,15 +45,13 @@ public class BookingsController : ControllerBase
         HotelCars selectedCar = _context.HotelCars.Find(booking.CarId);
 
         bool RoomAvailableAtDate = true;
-        
-        bool CarAvailableAtDate = true; //This is to make sure that a car is always available until it's in a booking
+        bool CarAvailableAtDate = true;
         
         if (allExistingBookings.Any())
         {
             RoomAvailableAtDate =
                 roomInstance.IsRoomAvailableAtDate(allExistingBookings, selectedRoom, bookingToBeCreated);
-            
-            //check if a car is available
+           
             CarAvailableAtDate = !allExistingBookings.Any(b =>
                 b.CarId == booking.CarId &&
                 (booking.StartDate < b.EndDate && booking.EndDate > b.StartDate));
@@ -81,39 +78,32 @@ public class BookingsController : ControllerBase
     }
 
     [HttpGet("read")]
-    public async Task<ActionResult<IEnumerable<Bookings>>> GetBookings(int? UserId, int? RoomId, int pageSize = 100,
-        int pageNumber = 1)
+    public async Task<ActionResult<IEnumerable<Bookings>>> GetBookings(int? BookingId, int? UserId, int? RoomId, int pageSize = 100, int pageNumber = 1)
     {
-        List<Bookings> bookings = new List<Bookings>();
+        if (pageNumber < 1 || pageSize < 1)
+        {
+            return BadRequest("PageNumber and size must be greater than 0");
+        }
+        
+        IQueryable<Bookings> query = _context.Booking.AsQueryable();
 
-        if (UserId != null && RoomId == null)
+        if (BookingId.HasValue)
         {
-            bookings = await _context.Booking.Where(c => c.UserId == UserId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            query = query.Where(c => c.Id == BookingId);
         }
-        else if (UserId == null && RoomId != null)
+        if (UserId.HasValue)
         {
-            bookings = await _context.Booking.Where(c => c.RoomId == RoomId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            query = query.Where(c => c.UserId == UserId);
         }
-        else if (UserId != null && RoomId != null)
+        if (RoomId.HasValue)
         {
-            bookings = await _context.Booking.Where(c => c.RoomId == RoomId && c.UserId == UserId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            query = query.Where(c => c.RoomId == RoomId);
         }
-        else
-        {
-            bookings = await _context.Booking
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        }
+
+        List<Bookings> bookings = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
         return Ok(bookings);
     }

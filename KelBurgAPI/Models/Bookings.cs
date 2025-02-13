@@ -36,7 +36,7 @@ public class Bookings : Common
 
     public bool CheckBookingOverlap(Bookings booking1, Bookings booking2)
     {
-        return booking1.StartDate <= booking2.EndDate && booking2.StartDate <= booking1.EndDate;
+        return booking1.StartDate < booking2.EndDate && booking2.StartDate < booking1.EndDate;
     }
 }
 

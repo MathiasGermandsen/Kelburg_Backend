@@ -98,6 +98,110 @@ public class BogusController : ControllerBase
             return BadRequest("Count must be greater than zero.");
         }
 
+        List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
+        DateTime today = DateTime.Now;
+
+        List<Bookings> allExistingBookings = _context.Booking.ToList();
+        List<Rooms> allRooms = _context.Rooms.ToList();
+
+        Dictionary<int, DateTime> latestEndDates = _context.Booking
+            .GroupBy(b => b.RoomId)
+            .Select(g => new { RoomId = g.Key, LatestEndDate = g.Max(b => b.EndDate) })
+            .ToDictionary(x => x.RoomId, x => x.LatestEndDate);
+
+        int countToUse = MaxCount;
+
+        List<BookingCreateDTO> bookingsGenerated =
+            KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(countToUse, validUserIdList, allRooms,
+                latestEndDates);
+
+        List<Bookings> bookingsMapped = new List<Bookings>();
+        List<Services> servicePrices = _context.Services.ToList();
+
+        if (!servicePrices.Any())
+        {
+            return BadRequest("No Service-prices found. Cannot make booking.");
+        }
+
+        foreach (BookingCreateDTO booking in bookingsGenerated)
+        {
+            Bookings newBooking = new Bookings()
+            {
+                UserId = booking.UserId,
+                PeopleCount = booking.PeopleCount,
+                BookingPrice = 0,
+                RoomId = booking.RoomId,
+                StartDate = booking.StartDate,
+                EndDate = booking.EndDate,
+                ServiceId = booking.ServiceId,
+            };
+
+            if (latestEndDates.ContainsKey(newBooking.RoomId))
+            {
+                DateTime latestEndDate = latestEndDates[newBooking.RoomId];
+                if (newBooking.StartDate < latestEndDate.AddHours(3))
+                {
+                    newBooking.EndDate = latestEndDate.AddHours(3);
+                    newBooking.EndDate = newBooking.StartDate.AddHours(3);
+                }
+                latestEndDates[newBooking.RoomId] = newBooking.EndDate;
+            }
+
+            Rooms? SelectedRoom = allRooms.Find(r => r.Id == booking.RoomId);
+            newBooking.BookingPrice = newBooking.CalculateBookingPrice(newBooking, SelectedRoom, servicePrices);
+            bookingsMapped.Add(newBooking);
+        }
+
+        _context.Booking.AddRange(bookingsMapped);
+        await _context.SaveChangesAsync();
+        return Ok(bookingsMapped);
+        return BadRequest("Count must be greater than zero.");
+    }
+
+    Console.WriteLine($"MaxCount received: {MaxCount}");
+
+    List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
+    if (!validUserIdList.Any())
+    {
+        return BadRequest("No valid users found. Cannot generate bookings.");
+    }
+
+    List<Bookings> allExistingBookings = _context.Booking.ToList();
+    List<Rooms> allRooms = _context.Rooms.ToList();
+    Rooms roomInstance = new Rooms();
+    
+    List<Rooms> roomsAvailable = roomInstance.GetAvailableRooms(allExistingBookings, allRooms);
+    if (!roomsAvailable.Any())
+    {
+        return BadRequest("No available rooms found. Cannot generate bookings.");
+    }
+
+    int countToUse = (roomsAvailable.Count > MaxCount) ? MaxCount : roomsAvailable.Count;
+
+    if (countToUse == 0)
+    {
+        return BadRequest("Not enough rooms available to create bookings.");
+    }
+
+    List<BookingCreateDTO> bookingsGenerated =
+        KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(countToUse, validUserIdList, roomsAvailable);
+
+    List<Bookings> bookingsMapped = new List<Bookings>();
+    List<Services> servicePrices = _context.Services.ToList();
+
+    if (!servicePrices.Any())
+    {
+        return BadRequest("No Service-prices found. Cannot make booking.");
+    }
+
+    foreach (BookingCreateDTO booking in bookingsGenerated)
+    {
+        Rooms? selectedRoom = roomsAvailable.Find(r => r.Id == booking.RoomId);
+        if (selectedRoom == null)
+        {
+            return BadRequest("Count must be greater than zero.");
+        }
+
         Console.WriteLine($"MaxCount received: {MaxCount}");
 
         List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();

@@ -19,9 +19,6 @@ WORKDIR /app
 
 COPY --from=build /app/publish .
 
-EXPOSE 80
-ENV ASPNETCORE_URLS=http://+:80
-
 RUN chown -R appuser:appgroup /app && chmod -R 755 /app
 USER appuser
 

@@ -13,16 +13,6 @@ public class Users : Common
     public string Country { get; set; }
     public string PhoneNumber { get; set; }
     public string AccountType { get; set; }
-    
-    public string UpperFirstLetter(string input)
-    {
-        if (input == null)
-        {
-            return null;
-        }
-        input = input.ToLower();
-        return char.ToUpper(input[0]) + input.Substring(1);
-    }
 }
 
 public class UserCreateDTO

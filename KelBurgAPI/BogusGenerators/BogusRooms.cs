@@ -30,7 +30,6 @@ public class BogusRooms
     {
         Faker<RoomCreateDTO> faker = new Faker<RoomCreateDTO>()
             .RuleFor(r => r.Size, f => f.Random.Number(1, 12))
-
             .RuleFor(r => r.RoomType, (f, r) => RoomCapacityMapping[r.Size].First())
             .RuleFor(r => r.ViewType, f => pricing.ViewTypePrices.Keys.ToList()[f.Random.Int(0, pricing.ViewTypePrices.Count - 1)])
             .RuleFor(r => r.PricePrNight, (f, r) => CalculateRoomPrice(pricing, r.RoomType, r.ViewType, r.Size));

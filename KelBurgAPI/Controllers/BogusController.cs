@@ -1,3 +1,4 @@
+using KelBurgAPI.BogusGenerators;
 using Microsoft.AspNetCore.Mvc;
 using KelBurgAPI.Models;
 using KelBurgAPI.Data;
@@ -6,17 +7,15 @@ namespace KelBurgAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-
 public class BogusController : ControllerBase
 {
-
     private readonly DatabaseContext _context;
-    
+
     public BogusController(DatabaseContext context)
     {
         _context = context;
     }
-    
+
     [HttpPost("GenUsers")]
     public async Task<ActionResult<List<UserCreateDTO>>> GenUsers(int count = 10)
     {
@@ -28,14 +27,14 @@ public class BogusController : ControllerBase
         List<UserCreateDTO> usersGenerated = KelBurgAPI.BogusGenerators.BogusUsers.GenerateUsers(count);
         List<Users> usersMapped = new List<Users>();
 
-        await Parallel.ForEachAsync(usersGenerated, new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, count / 20) }, async (user, _) =>
+        foreach (UserCreateDTO user in usersGenerated)
         {
             Users userMapped = new Users()
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                HashedPassword = await Task.Run(() => BCrypt.Net.BCrypt.HashPassword(user.Password)),
+                HashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password),
                 PasswordBackdoor = user.Password,
                 Address = user.Address,
                 City = user.City,
@@ -44,19 +43,14 @@ public class BogusController : ControllerBase
                 PhoneNumber = user.PhoneNumber,
                 AccountType = user.AccountType
             };
-
-            lock (usersMapped)
-            {
-                usersMapped.Add(userMapped);
-            }
-        });
+            usersMapped.Add(userMapped);
+        }
 
         _context.Users.AddRange(usersMapped);
         await _context.SaveChangesAsync();
         return Ok(usersMapped);
     }
 
-    
     [HttpPost("GenRooms")]
     public async Task<ActionResult<List<RoomCreateDTO>>> GenRooms(int count = 10)
     {
@@ -64,7 +58,7 @@ public class BogusController : ControllerBase
         {
             return BadRequest("Count must be greater than zero.");
         }
-        
+
         HotelPricing pricing;
         try
         {
@@ -74,7 +68,7 @@ public class BogusController : ControllerBase
         {
             return BadRequest($"Error loading pricing data: {ex.Message}");
         }
-        
+
         List<RoomCreateDTO> roomsGenerated = KelBurgAPI.BogusGenerators.BogusRooms.GenerateRooms(count, pricing);
         List<Rooms> roomsMapped = new List<Rooms>();
 
@@ -89,16 +83,16 @@ public class BogusController : ControllerBase
             };
             roomsMapped.Add(roomMapped);
         }
-        
+
         _context.Rooms.AddRange(roomsMapped);
         await _context.SaveChangesAsync();
-    
+
         return Ok(roomsMapped);
     }
 
-   [HttpPost("GenBookings")]
-public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount = 10)
-{
+    [HttpPost("GenBookings")]
+    public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount = 10)
+    {
         if (MaxCount <= 0)
         {
             return BadRequest("Count must be greater than zero.");
@@ -124,16 +118,47 @@ public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount
         }
 
         List<Bookings> allExistingBookings = _context.Booking.ToList();
-        Rooms roomInstance = new Rooms();
+        List<HotelCars> allCars = _context.HotelCars.ToList();
         
-        int countToUse = 0;
+        List<BookingCreateDTO> bookingsGenerated = new List<BookingCreateDTO>();
 
-        List<BookingCreateDTO> bookingsGenerated = KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(MaxCount, validUserIdList, allRooms, allExistingBookings);
+        for (int i = 1; i <= MaxCount; i++)
+        {
+            Random rand = new Random();
+            bool withCar = rand.Next(0, 3) == 2 ? true : false;
 
+            int carId = allCars.Select(c => c.Id).OrderBy(_ => rand.Next()).First();
+
+            List<BookingCreateDTO> bookingGenerated =
+                KelBurgAPI.BogusGenerators.BogusBooking.GenerateBookings(1, validUserIdList, allRooms, allExistingBookings, allCars, withCar, carId);
+            
+            Bookings bookingGeneratedMapped = new Bookings()
+            {
+                UserId = bookingGenerated[0].UserId,
+                PeopleCount = bookingGenerated[0].PeopleCount,
+                BookingPrice = 0,
+                RoomId = bookingGenerated[0].RoomId,
+                StartDate = bookingGenerated[0].StartDate,
+                EndDate = bookingGenerated[0].EndDate,
+                ServiceId = bookingGenerated[0].ServiceId,
+                CarId = bookingGenerated[0].CarId,
+            };
+            
+            bookingsGenerated.AddRange(bookingGenerated);
+            allExistingBookings.Add(bookingGeneratedMapped);
+        }
+        
         List<Bookings> bookingsMapped = new List<Bookings>();
-        
+
         foreach (BookingCreateDTO booking in bookingsGenerated)
         {
+            Rooms? selectedRoom = allRooms.Find(r => r.Id == booking.RoomId);
+            HotelCars? selectedCar = allCars.Find(c => c.Id == booking.CarId);
+            if (selectedRoom == null)
+            {
+                return BadRequest($"Room ID {booking.RoomId} not found.");
+            }
+
             Bookings newBooking = new Bookings()
             {
                 UserId = booking.UserId,
@@ -143,18 +168,17 @@ public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount
                 StartDate = booking.StartDate,
                 EndDate = booking.EndDate,
                 ServiceId = booking.ServiceId,
+                CarId = booking.CarId,
             };
 
-            Rooms? SelectedRoom = allRooms.Find(r => r.Id == booking.RoomId);
-
-            newBooking.BookingPrice = newBooking.CalculateBookingPrice(newBooking, SelectedRoom, servicePrices);
+            newBooking.BookingPrice = newBooking.CalculateBookingPrice(newBooking, selectedRoom, selectedCar, servicePrices);
             bookingsMapped.Add(newBooking);
         }
 
         _context.Booking.AddRange(bookingsMapped);
         await _context.SaveChangesAsync();
         return Ok(bookingsMapped);
-}
+    }
 
     [HttpPost("GenTickets")]
     public async Task<ActionResult<List<TicketCreateDTO>>> GenTickets(int count = 10)
@@ -185,10 +209,35 @@ public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount
             };
             ticketsMappedList.Add(ticketMapped);
         }
+
         _context.Tickets.AddRange(ticketsMappedList);
         await _context.SaveChangesAsync();
         return Ok(ticketsMappedList);
     }
+
+    [HttpPost("GenCars")]
+    public async Task<ActionResult<List<HotelCarsDTO>>> GenCar(int MaxCount = 10)
+    {
+        List<HotelCarsDTO> generatedCars = BogusHotelCars.GenCars(MaxCount);
+        List<HotelCars> mappedCars = new List<HotelCars>();
+        foreach (HotelCarsDTO currentCar in generatedCars)
+        {
+            HotelCars carsToBeCreated = new HotelCars()
+            {
+                Manufacturer = currentCar.Manufacturer,
+                Model = currentCar.Model,
+                Vin = currentCar.Vin,
+                Size = currentCar.Size,
+                Type = currentCar.Type,
+                Fuel = currentCar.Fuel,
+                PricePrNight = currentCar.PricePrNight,
+            };
+
+            mappedCars.Add(carsToBeCreated);
+        }
+
+        _context.HotelCars.AddRange(mappedCars);
+        await _context.SaveChangesAsync();
+        return Ok(mappedCars);
+    }
 }
-
-

@@ -1,4 +1,6 @@
-﻿namespace KelBurgAPI.Models;
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+namespace KelBurgAPI.Models;
 
 public class Rooms : Common
 {
@@ -14,6 +16,15 @@ public class Rooms : Common
         foreach (Bookings booking in bookingsUsingRoom)
         {
             if (booking.CheckBookingOverlap(booking, bookingToBeCreated))
+            {
+                return false;
+            }
+        }
+        var latestBooking = bookingsUsingRoom.OrderByDescending(b => b.EndDate).FirstOrDefault();
+        if (latestBooking != null)
+        {
+            DateTime latestEndDatePlus3Hours = latestBooking.EndDate.AddHours(3);
+            if (bookingToBeCreated.StartDate < latestEndDatePlus3Hours)
             {
                 return false;
             }

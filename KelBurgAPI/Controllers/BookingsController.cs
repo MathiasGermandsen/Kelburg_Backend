@@ -9,7 +9,6 @@ namespace KelBurgAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-
 public class BookingsController : ControllerBase
 {
     private readonly DatabaseContext _context;
@@ -25,42 +24,56 @@ public class BookingsController : ControllerBase
         if (booking == null)
         {
             return BadRequest("Booking is null");
-        } 
-        
+        }
+
         Bookings bookingToBeCreated = new Bookings()
         {
             UserId = booking.UserId,
             PeopleCount = booking.PeopleCount,
-            BookingPrice = 0, // Will be calculated
+            BookingPrice = 0, 
             RoomId = booking.RoomId,
             StartDate = booking.StartDate,
             EndDate = booking.EndDate,
             ServiceId = booking.ServiceId,
+            CarId = booking.CarId,
         };
-        
+
         List<Bookings> allExistingBookings = _context.Booking.ToList();
         Rooms roomInstance = new Rooms();
-        
-        Rooms SelectedRoom = _context.Rooms.Find(booking.RoomId);
+
+        Rooms selectedRoom = _context.Rooms.Find(booking.RoomId);
+        HotelCars selectedCar = _context.HotelCars.Find(booking.CarId);
 
         bool RoomAvailableAtDate = true;
-
+        bool CarAvailableAtDate = true;
+        
         if (allExistingBookings.Any())
         {
-            RoomAvailableAtDate = roomInstance.IsRoomAvailableAtDate(allExistingBookings, SelectedRoom, bookingToBeCreated);      
+            RoomAvailableAtDate =
+                roomInstance.IsRoomAvailableAtDate(allExistingBookings, selectedRoom, bookingToBeCreated);
+           
+            CarAvailableAtDate = !allExistingBookings.Any(b =>
+                b.CarId == booking.CarId &&
+                (booking.StartDate < b.EndDate && booking.EndDate > b.StartDate));
         }
-
+        
         if (!RoomAvailableAtDate)
         {
             return BadRequest($"Room is not available at this date");
         }
-        
+
+        if (!CarAvailableAtDate)
+        {
+            return BadRequest($"Car is not available at this date");
+        }
+
         List<Services> servicePricesDicts = _context.Services.ToList();
-        
-        bookingToBeCreated.BookingPrice = bookingToBeCreated.CalculateBookingPrice(bookingToBeCreated, SelectedRoom, servicePricesDicts);
+
+        bookingToBeCreated.BookingPrice =
+            bookingToBeCreated.CalculateBookingPrice(bookingToBeCreated, selectedRoom, selectedCar, servicePricesDicts);
         
         _context.Booking.Add(bookingToBeCreated);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();        
         return CreatedAtAction(nameof(GetBookings), new { id = bookingToBeCreated.Id }, bookingToBeCreated);
     }
 
@@ -94,22 +107,25 @@ public class BookingsController : ControllerBase
 
         return Ok(bookings);
     }
-    
+
     [HttpPut("update")]
-    public async Task<ActionResult<Bookings>> EditBooking(int bookingIdToChange, [FromQuery] BookingEditDTO editedBooking)
+    public async Task<ActionResult<Bookings>> EditBooking(int bookingIdToChange,
+        [FromQuery] BookingEditDTO editedBooking)
     {
         Bookings bookingToEdit = await _context.Booking.FindAsync(bookingIdToChange);
-        
+
         Rooms selectedRoom = await _context.Rooms.FindAsync(editedBooking.RoomId);
+        HotelCars selectedCar = await _context.HotelCars.FindAsync(editedBooking.CarId);
+        
         List<Services> services = await _context.Services.ToListAsync();
-        
+
         List<Bookings> allExistingBookings = _context.Booking.ToList();
-        
+
         if (allExistingBookings.Contains(bookingToEdit))
         {
             allExistingBookings.Remove(bookingToEdit);
         }
-        
+
         if (bookingToEdit == null)
         {
             return NotFound();
@@ -130,7 +146,7 @@ public class BookingsController : ControllerBase
                 }
             }
         }
-        
+
         if (selectedRoom != null)
         {
             if (!selectedRoom.IsRoomAvailableAtDate(allExistingBookings, selectedRoom, bookingToEdit))
@@ -138,8 +154,8 @@ public class BookingsController : ControllerBase
                 return BadRequest("Room is not available at this date");
             }
         }
-        
-        bookingToEdit.BookingPrice = bookingToEdit.CalculateBookingPrice(bookingToEdit, selectedRoom, services);
+
+        bookingToEdit.BookingPrice = bookingToEdit.CalculateBookingPrice(bookingToEdit, selectedRoom, selectedCar, services);
 
         await _context.SaveChangesAsync();
         return Ok(bookingToEdit);
@@ -154,7 +170,7 @@ public class BookingsController : ControllerBase
         {
             return NotFound("Booking not found");
         }
-        
+
         _context.Booking.Remove(await _context.Booking.FindAsync(bookingId));
         await _context.SaveChangesAsync();
         return Ok(bookingsToDelete);

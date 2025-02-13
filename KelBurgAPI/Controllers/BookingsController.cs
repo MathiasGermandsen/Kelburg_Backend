@@ -20,7 +20,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<ActionResult<Rooms>> CreateBooking([FromQuery] BookingCreateDTO booking) // Change to FromQuery when doing frontend
+    public async Task<ActionResult<Rooms>> CreateBooking([FromQuery] BookingCreateDTO booking)
     {
         if (booking == null)
         {

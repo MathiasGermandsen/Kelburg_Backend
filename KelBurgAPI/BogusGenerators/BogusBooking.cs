@@ -56,6 +56,7 @@ namespace KelBurgAPI.BogusGenerators
                         RoomId = selectedRoom.Id
                     };
 
+                    //for loop to make sure the some of the bookings has a car
                     if (withCar)
                     {
                         List<Bookings> allBookingsAlsoNew = new List<Bookings>(allExistingBookings);
@@ -95,6 +96,8 @@ namespace KelBurgAPI.BogusGenerators
             return faker.Generate(count);
         }
 
+        
+        //this is where we are making sure there is no overlapping in the booking of a car
         private static (DateTime startDate, DateTime endDate) FindNextAvailableCar(DateTime startDate, int numberOfDays,
             List<Bookings> allBookings, List<HotelCars> allCars)
         {

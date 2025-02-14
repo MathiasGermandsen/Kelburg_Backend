@@ -19,8 +19,14 @@ services:
       - jwt.env
     environment:
       DefaultConnection: /run/secrets/DefaultConnection
+      Key: /run/secrets/key
+      Issuer: /run/secrets/issuer
+      Audience: /run/secrets/audience
     secrets:
       - DefaultConnection
+      - key
+      - issuer
+      - audience
     depends_on:
       - db
     ports:
@@ -29,6 +35,12 @@ services:
 secrets:
   DefaultConnection:
     external: true
+  key:
+    file: ./jwt-env-key
+  issuer:
+    file: ./jwt-env-issuer
+  audience:
+    file: ./jwt-env-audience
         
 volumes:
   pg_data:

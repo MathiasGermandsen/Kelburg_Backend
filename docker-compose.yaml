@@ -32,11 +32,11 @@ services:
 secrets:
   DefaultConnection:
     external: true
-  key:
+  Key:
     external: true
-  issuer:
+  Issuer:
     external: true
-  audience:
+  Audience:
     external: true
 
 volumes:

@@ -98,10 +98,6 @@ namespace KelBurgAPI
                 await Task.CompletedTask;
             });
 
-            // Console.WriteLine($"JWT Key: {Configuration["JwtSettings:Key"]}");
-            // Console.WriteLine($"JWT Issuer: {Configuration["JwtSettings:Issuer"]}");
-            // Console.WriteLine($"JWT Audience: {Configuration["JwtSettings:Audience"]}");
-
             app.Run();
         }
 

@@ -3,4 +3,5 @@
 bin
 obj
 *.dll
-
+*dbsecrete.txt
+*jwt.env

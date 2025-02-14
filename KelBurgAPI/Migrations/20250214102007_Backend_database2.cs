@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KelBurgAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class Backend_database : Migration
+    public partial class Backend_database2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

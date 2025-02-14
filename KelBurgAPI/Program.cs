@@ -2,12 +2,12 @@ using KelBurgAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 namespace KelBurgAPI
 {
-    public class program
+    public class Program
     {
         public static void Main(string[] args)
         {
@@ -20,7 +20,7 @@ namespace KelBurgAPI
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     In = ParameterLocation.Header,
-                    Description = "Indtast 'Bearer' [mellemrum] og din JWT token for at få adgang.",
+                    Description = "Enter 'Bearer' [space] and your JWT token.",
                     Name = "Authorization",
                     Type = SecuritySchemeType.ApiKey
                 });
@@ -35,36 +35,44 @@ namespace KelBurgAPI
                                 Id = "Bearer"
                             }
                         },
-                        new string[] {}
+                        new string[] { }
                     }
                 });
             });
-            
-            
-            IConfiguration Configuration = builder.Configuration;
 
-            string connectionString = Configuration.GetConnectionString("DefaultConnection") 
-                                      ?? Environment.GetEnvironmentVariable("DefaultConnection");
+            IConfiguration Configuration = builder.Configuration;
+            
+            string secretFilePath = Environment.GetEnvironmentVariable("DefaultConnection");
+            string connectionString = null;
+            if (!string.IsNullOrEmpty(secretFilePath) && File.Exists(secretFilePath))
+            {
+                connectionString = File.ReadAllText(secretFilePath).Trim();
+            }
+            else
+            {
+                connectionString = Configuration.GetConnectionString("DefaultConnection")
+                                   ?? throw new InvalidOperationException("DefaultConnection string is not set.");
+            }
 
             builder.Services.AddDbContext<DatabaseContext>(options =>
                 options.UseNpgsql(connectionString));
             
-            // Configure JWT Authentication
-            builder.Services.AddAuthentication(x =>
+            builder.Services.AddAuthentication(options =>
             {
-                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(x =>
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
             {
-                x.TokenValidationParameters = new TokenValidationParameters
+                var jwtKey = GetSecretValue(Configuration["JwtSettings:Key"]);
+                var jwtIssuer = GetSecretValue(Configuration["JwtSettings:Issuer"]);
+                var jwtAudience = GetSecretValue(Configuration["JwtSettings:Audience"]);
+
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidIssuer = Configuration["JwtSettings:Issuer"],
-                    ValidAudience = Configuration["JwtSettings:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey
-                    (
-                        Encoding.UTF8.GetBytes(Configuration["JwtSettings:Key"])
-                    ),
+                    ValidIssuer = jwtIssuer,
+                    ValidAudience = jwtAudience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
@@ -73,17 +81,46 @@ namespace KelBurgAPI
             });
             
             var app = builder.Build();
+
+            ApplyMigrations(app);
             
             app.UseSwagger();
             app.UseSwaggerUI();
-            
-            app.UseHttpsRedirection();
-            
+
+            app.UseAuthentication();
             app.UseAuthorization();
-            
+
             app.MapControllers();
             
+            app.MapGet("/", async context =>
+            {
+                context.Response.Redirect("/swagger");
+                await Task.CompletedTask;
+            });
+
+            // Console.WriteLine($"JWT Key: {Configuration["JwtSettings:Key"]}");
+            // Console.WriteLine($"JWT Issuer: {Configuration["JwtSettings:Issuer"]}");
+            // Console.WriteLine($"JWT Audience: {Configuration["JwtSettings:Audience"]}");
+
             app.Run();
+        }
+
+        public static void ApplyMigrations(WebApplication app)
+        {
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+                dbContext.Database.Migrate();
+            }
+        }
+        
+        public static string GetSecretValue(string keyOrFilePath)
+        {
+            if (keyOrFilePath != null && File.Exists(keyOrFilePath))
+            {
+                return File.ReadAllText(keyOrFilePath).Trim();
+            }
+            return keyOrFilePath;
         }
     }
 }

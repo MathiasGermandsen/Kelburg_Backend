@@ -43,13 +43,12 @@ namespace KelBurgAPI
 
             IConfiguration Configuration = builder.Configuration;
 
-            // 2) Configure database
-            // Try to get the connection string from a Docker secret file, falling back to configuration.
+            // 2) Configure database connection
             string secretFilePath = Environment.GetEnvironmentVariable("DefaultConnection");
             string connectionString = null;
             if (!string.IsNullOrEmpty(secretFilePath) && File.Exists(secretFilePath))
             {
-                connectionString = File.ReadAllText(secretFilePath).Trim(); // Remove unnecessary spaces or newlines
+                connectionString = File.ReadAllText(secretFilePath).Trim();
             }
             else
             {
@@ -57,7 +56,6 @@ namespace KelBurgAPI
                                    ?? throw new InvalidOperationException("DefaultConnection string is not set.");
             }
 
-            // Register the database context
             builder.Services.AddDbContext<DatabaseContext>(options =>
                 options.UseNpgsql(connectionString));
 
@@ -69,7 +67,6 @@ namespace KelBurgAPI
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
-                // Use the helper method to load secret values.
                 var jwtKey = GetSecretValue(Configuration["JwtSettings:Key"]);
                 var jwtIssuer = GetSecretValue(Configuration["JwtSettings:Issuer"]);
                 var jwtAudience = GetSecretValue(Configuration["JwtSettings:Audience"]);
@@ -98,7 +95,6 @@ namespace KelBurgAPI
             app.UseAuthentication();
             app.UseAuthorization();
 
-            // 6) Map controllers
             app.MapControllers();
 
             // Optional: redirect root to Swagger UI
@@ -108,12 +104,11 @@ namespace KelBurgAPI
                 await Task.CompletedTask;
             });
 
-            // Logging JWT settings for debugging (if needed)
+            // Log the JWT settings for debugging (be cautious with logging sensitive data in production)
             Console.WriteLine($"JWT Key: {Configuration["JwtSettings:Key"]}");
             Console.WriteLine($"JWT Issuer: {Configuration["JwtSettings:Issuer"]}");
             Console.WriteLine($"JWT Audience: {Configuration["JwtSettings:Audience"]}");
 
-            // 7) Run the application
             app.Run();
         }
 
@@ -125,9 +120,10 @@ namespace KelBurgAPI
                 dbContext.Database.Migrate();
             }
         }
+        
         public static string GetSecretValue(string keyOrFilePath)
         {
-            if (File.Exists(keyOrFilePath))
+            if (keyOrFilePath != null && File.Exists(keyOrFilePath))
             {
                 return File.ReadAllText(keyOrFilePath).Trim();
             }

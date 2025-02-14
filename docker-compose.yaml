@@ -16,9 +16,9 @@ services:
     image: kelburg_api:latest
     environment:
       DefaultConnection: /run/secrets/DefaultConnection
-      Key: /run/secrets/Key
-      Issuer: /run/secrets/Issuer
-      Audience: /run/secrets/Audience
+      JwtSettings__Key: /run/secrets/key
+      JwtSettings__Issuer: /run/secrets/issuer
+      JwtSettings__Audience: /run/secrets/audience
     secrets:
       - DefaultConnection
       - Key

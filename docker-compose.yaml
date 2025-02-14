@@ -4,9 +4,13 @@ services:
   db:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: kelburgdb
-      POSTGRES_USER: kelburguser
-      POSTGRES_PASSWORD: database69420!
+      POSTGRES_DB: /run/secrets/database
+      POSTGRES_USER: /run/secrets/dbuser
+      POSTGRES_PASSWORD: /run/secrets/dbpassword
+    secrets:
+      - database
+      - dbuser
+      - dbpassword 
     ports:
       - "5432:5432"
     volumes:
@@ -30,6 +34,12 @@ services:
       - "8080:8080"
 
 secrets:
+  datase:
+    external: true
+  dbuser:
+    external: true
+  dbpassword:
+    external: true
   DefaultConnection:
     external: true
   Key:

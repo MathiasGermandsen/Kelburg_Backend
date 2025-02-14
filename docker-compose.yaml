@@ -21,9 +21,9 @@ services:
       JwtSettings__Audience: /run/secrets/Audience
     secrets:
       - DefaultConnection
-      - key
-      - issuer
-      - audience
+      - Key
+      - Issuer
+      - Audience
     depends_on:
       - db
     ports:

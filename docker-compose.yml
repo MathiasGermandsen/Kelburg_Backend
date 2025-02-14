@@ -34,7 +34,7 @@ services:
       - "8080:8080"
 
 secrets:
-  datase:
+  database:
     external: true
   dbuser:
     external: true

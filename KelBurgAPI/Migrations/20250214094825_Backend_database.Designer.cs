@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KelBurgAPI.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20250214093614_Backend_database")]
+    [Migration("20250214094825_Backend_database")]
     partial class Backend_database
     {
         /// <inheritdoc />
@@ -36,6 +36,9 @@ namespace KelBurgAPI.Migrations
                     b.Property<int>("BookingPrice")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("CarId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -57,6 +60,45 @@ namespace KelBurgAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Booking");
+                });
+
+            modelBuilder.Entity("KelBurgAPI.Models.HotelCars", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Fuel")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Manufacturer")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("PricePrNight")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Vin")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HotelCars");
                 });
 
             modelBuilder.Entity("KelBurgAPI.Models.Rooms", b =>

@@ -24,11 +24,31 @@ namespace KelBurgAPI.Migrations
                     RoomId = table.Column<int>(type: "integer", nullable: false),
                     StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ServiceId = table.Column<int>(type: "integer", nullable: false)
+                    ServiceId = table.Column<int>(type: "integer", nullable: false),
+                    CarId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Booking", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HotelCars",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Manufacturer = table.Column<string>(type: "text", nullable: false),
+                    Model = table.Column<string>(type: "text", nullable: false),
+                    Vin = table.Column<string>(type: "text", nullable: false),
+                    Size = table.Column<int>(type: "integer", nullable: false),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    Fuel = table.Column<string>(type: "text", nullable: false),
+                    PricePrNight = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HotelCars", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -110,6 +130,9 @@ namespace KelBurgAPI.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Booking");
+
+            migrationBuilder.DropTable(
+                name: "HotelCars");
 
             migrationBuilder.DropTable(
                 name: "Rooms");

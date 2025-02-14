@@ -45,7 +45,6 @@ public class UsersController : ControllerBase
             return Conflict(new { message = "Password is not secure." });
         }
         
-        
         Users newUser = new Users()
         {
             FirstName = user.FirstName,
@@ -66,67 +65,37 @@ public class UsersController : ControllerBase
         return CreatedAtAction(nameof(GetUsers), new { id = newUser.Id }, newUser );
     }
 
-    [Authorize]
     [HttpGet("read")]
-    public async Task<ActionResult<IEnumerable<Users>>> GetUsers(string? FirstName, string? LastName, int pageSize = 100, int pageNumber = 1) 
+    public async Task<ActionResult<IEnumerable<Users>>> GetUsers(int? userId, string? FirstName, string? LastName, int pageSize = 100, int pageNumber = 1) 
     {
         if (pageNumber < 1 || pageSize < 1)
         {
             return BadRequest("PageNumber and size must be greater than 0");
         }
         
-        int allPeople = _context.Users.Count();
-        int totalPages = (int)Math.Ceiling(allPeople / (double)pageSize);
+        IQueryable<Users> query = _context.Users.AsQueryable();
 
-        if (pageNumber > totalPages)
+        if (userId.HasValue)
         {
-            return NotFound("Page number exceeds total pages");
+            query = query.Where(c => c.Id == userId);
         }
         
-        List<Users> users = new List<Users>();
+        if (!string.IsNullOrEmpty(FirstName))
+        {
+            query = query.Where(c => c.FirstName.ToLower().Contains(FirstName.ToLower()));
+        }
         
-        if (FirstName != null && LastName == null)
+        if (!string.IsNullOrEmpty(LastName))
         {
-            users = await _context.Users.Where(c => c.FirstName == FirstName)
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-            
-        } else if (LastName != null && FirstName == null)
-        {
-            users = await _context.Users.Where(c => c.LastName == LastName)  
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-            
-        } else if (LastName != null && FirstName != null)
-        {
-            users = await _context.Users.Where(c => c.LastName == LastName && c.FirstName == FirstName)  
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            query = query.Where(c => c.LastName.ToLower().Contains(LastName.ToLower()));
         }
-        else
-        {
-            users = await _context.Users
-                .Skip((pageNumber-1)*pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        }
+
+        List<Users> users = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
         return Ok(users);
-    }
-
-    [HttpGet("findById")]
-    public async Task<ActionResult<Users>> GetUserById([FromQuery] int id)
-    {
-        Users foundUser = await _context.Users.FindAsync(id);
-
-        if (foundUser == null)
-        {
-            return NotFound("User not found");
-        }
-        
-        return Ok(foundUser);
     }
     
     [HttpPost("login")]
@@ -158,18 +127,18 @@ public class UsersController : ControllerBase
     
     private string GenerateJwtToken(Users user)
     {
-        var claims = new[]
+        Claim[] claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.Name, user.Email)
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes
+        SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes
             (_configuration["JwtSettings:Key"]));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        SigningCredentials? creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var token = new JwtSecurityToken(
+        JwtSecurityToken token = new JwtSecurityToken(
             _configuration["JwtSettings:Issuer"],
             _configuration["JwtSettings:Audience"],
             claims,
@@ -177,5 +146,20 @@ public class UsersController : ControllerBase
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    
+    [HttpDelete("delete")]
+    public async Task<ActionResult<Users>> DeleteUser(int userId)
+    {
+        Users user = await _context.Users.FindAsync(userId);
+        
+        if (user == null)
+        {
+            return NotFound("User not found");
+        }
+        
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+        return Ok(user);
     }
 }

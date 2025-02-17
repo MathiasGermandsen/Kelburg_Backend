@@ -125,6 +125,7 @@ public class UsersController : ControllerBase
         {
             return Unauthorized(new { message = "Invalid email or password." });
         }
+        
         var token = GenerateJwtToken(user);
         return Ok(new { token, user.FirstName, user.Id });
     }
@@ -157,12 +158,12 @@ public class UsersController : ControllerBase
         };
 
         SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes
-            (_configuration["JwtSettings:Key"]));
+            (jwtKey));
         SigningCredentials? creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         JwtSecurityToken token = new JwtSecurityToken(
-            _configuration["JwtSettings:Issuer"],
-            _configuration["JwtSettings:Audience"],
+            jwtIssuer,
+            jwtAudience,
             claims,
             expires: DateTime.Now.AddMinutes(30),
             signingCredentials: creds);

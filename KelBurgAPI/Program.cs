@@ -87,7 +87,7 @@ namespace KelBurgAPI
             
             var app = builder.Build();
 
-            ApplyMigrations(app);
+            //ApplyMigrations(app);
             
             app.UseSwagger();
             app.UseSwaggerUI();

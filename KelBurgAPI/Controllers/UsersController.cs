@@ -10,14 +10,32 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using KelBurgAPI.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using System.IO;
+
+
 
 namespace KelBurgAPI.Controllers;
+
+public static class SecretHelper
+{
+    public static string GetSecretValue(string keyOrFilePath)
+    {
+        if (!string.IsNullOrEmpty(keyOrFilePath) && File.Exists(keyOrFilePath))
+        {
+            return File.ReadAllText(keyOrFilePath).Trim();
+        }
+        return keyOrFilePath;
+    }
+}
 
 [Route("api/[controller]")]
 [ApiController]
 
 public class UsersController : ControllerBase
 {
+    
+    
     private readonly DatabaseContext _context;
     private readonly IConfiguration _configuration;
 
@@ -128,6 +146,9 @@ public class UsersController : ControllerBase
     
     private string GenerateJwtToken(Users user)
     {
+        var jwtKey = SecretHelper.GetSecretValue(_configuration["JwtSettings:Key"]);
+        var jwtIssuer = SecretHelper.GetSecretValue(_configuration["JwtSettings:Issuer"]);
+        var jwtAudience = SecretHelper.GetSecretValue(_configuration["JwtSettings:Audience"]);
         Claim[] claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -163,4 +184,6 @@ public class UsersController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(user);
     }
+    
+
 }

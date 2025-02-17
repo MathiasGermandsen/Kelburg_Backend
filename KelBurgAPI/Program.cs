@@ -9,10 +9,10 @@ namespace KelBurgAPI
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            
+
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
@@ -46,7 +46,7 @@ namespace KelBurgAPI
             string connectionString = null;
             if (!string.IsNullOrEmpty(secretFilePath) && File.Exists(secretFilePath))
             {
-                connectionString = File.ReadAllText(secretFilePath).Trim();
+                connectionString = await File.ReadAllTextAsync(secretFilePath);
             }
             else
             {
@@ -57,6 +57,26 @@ namespace KelBurgAPI
             builder.Services.AddDbContext<DatabaseContext>(options =>
                 options.UseNpgsql(connectionString));
             
+            var keyPath = "/run/secrets/Key";
+            
+            string jwtKey;
+            if (File.Exists(keyPath))
+            {
+                jwtKey = await File.ReadAllTextAsync(keyPath);
+            }
+            else
+            {
+                jwtKey = Configuration["JwtSettings:Key"];
+            }
+            
+            if (string.IsNullOrEmpty(jwtKey))
+            {
+                throw new InvalidOperationException("The JWT secret key is not configured.");
+            }
+
+            var jwtIssuer = Configuration["JwtSettings:Issuer"];
+            var jwtAudience = Configuration["JwtSettings:Audience"];
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -64,10 +84,6 @@ namespace KelBurgAPI
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
-                var jwtKey = GetSecretValue(Configuration["JwtSettings:Key"]);
-                var jwtIssuer = GetSecretValue(Configuration["JwtSettings:Issuer"]);
-                var jwtAudience = GetSecretValue(Configuration["JwtSettings:Audience"]);
-
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidIssuer = jwtIssuer,
@@ -79,11 +95,11 @@ namespace KelBurgAPI
                     ValidateIssuerSigningKey = true
                 };
             });
-            
+
             var app = builder.Build();
 
             ApplyMigrations(app);
-            
+
             app.UseSwagger();
             app.UseSwaggerUI();
 
@@ -91,14 +107,14 @@ namespace KelBurgAPI
             app.UseAuthorization();
 
             app.MapControllers();
-            
+
             app.MapGet("/", async context =>
             {
                 context.Response.Redirect("/swagger");
                 await Task.CompletedTask;
             });
 
-            app.Run();
+            await app.RunAsync();
         }
 
         public static void ApplyMigrations(WebApplication app)
@@ -108,15 +124,6 @@ namespace KelBurgAPI
                 var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
                 dbContext.Database.Migrate();
             }
-        }
-        
-        public static string GetSecretValue(string keyOrFilePath)
-        {
-            if (keyOrFilePath != null && File.Exists(keyOrFilePath))
-            {
-                return File.ReadAllText(keyOrFilePath).Trim();
-            }
-            return keyOrFilePath;
         }
     }
 }

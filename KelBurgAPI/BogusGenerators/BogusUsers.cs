@@ -10,7 +10,7 @@ public class BogusUsers
         Faker<UserCreateDTO> faker = new Faker<UserCreateDTO>()
             .RuleFor(u => u.FirstName, f => f.Name.FirstName())
             .RuleFor(u => u.LastName, f => f.Name.LastName())
-            .RuleFor(u => u.Email, f => f.Internet.Email())
+            .RuleFor(u => u.Email, f => f.Internet.Email().ToLower())
             .RuleFor(u => u.Password, f => f.Internet.Password())
             .RuleFor(u => u.Address, f => f.Address.StreetAddress())
             .RuleFor(u => u.City, f => f.Address.City())

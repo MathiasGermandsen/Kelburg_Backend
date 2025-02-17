@@ -66,6 +66,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("read")]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<Users>>> GetUsers(int? userId, string? FirstName, string? LastName, int pageSize = 100, int pageNumber = 1) 
     {
         if (pageNumber < 1 || pageSize < 1)
@@ -134,7 +135,7 @@ public class UsersController : ControllerBase
             new Claim(ClaimTypes.Name, user.Email)
         };
 
-        SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes
+        SymmetricSecurityKey key = new SymmetricSecurityKey(Convert.FromBase64String
             (_configuration["JwtSettings:Key"]));
         SigningCredentials? creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

@@ -73,6 +73,8 @@ namespace KelBurgAPI
             {
                 throw new InvalidOperationException("The JWT secret key is not configured.");
             }
+            
+            Console.WriteLine($"JWT key: {jwtKey}");
 
             var jwtIssuer = Configuration["JwtSettings:Issuer"];
             var jwtAudience = Configuration["JwtSettings:Audience"];

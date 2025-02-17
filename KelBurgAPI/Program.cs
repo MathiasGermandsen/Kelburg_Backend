@@ -90,7 +90,7 @@ namespace KelBurgAPI
                 {
                     ValidIssuer = jwtIssuer,
                     ValidAudience = jwtAudience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(jwtKey)),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,

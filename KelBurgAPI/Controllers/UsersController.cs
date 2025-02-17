@@ -135,7 +135,7 @@ public class UsersController : ControllerBase
             new Claim(ClaimTypes.Name, user.Email)
         };
 
-        SymmetricSecurityKey key = new SymmetricSecurityKey(Convert.FromBase64String
+        SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes
             (_configuration["JwtSettings:Key"]));
         SigningCredentials? creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

@@ -78,7 +78,7 @@ public class BookingsController : ControllerBase
     }
 
     [HttpGet("read")]
-    public async Task<ActionResult<IEnumerable<Bookings>>> GetBookings(int? BookingId, int? UserId, int? RoomId, int pageSize = 100, int pageNumber = 1)
+    public async Task<ActionResult<IEnumerable<Bookings>>> GetBookings(int? bookingId, int? userId, int? roomId, int pageSize = 100, int pageNumber = 1)
     {
         if (pageNumber < 1 || pageSize < 1)
         {
@@ -87,17 +87,17 @@ public class BookingsController : ControllerBase
         
         IQueryable<Bookings> query = _context.Booking.AsQueryable();
 
-        if (BookingId.HasValue)
+        if (bookingId.HasValue)
         {
-            query = query.Where(c => c.Id == BookingId);
+            query = query.Where(c => c.Id == bookingId);
         }
-        if (UserId.HasValue)
+        if (userId.HasValue)
         {
-            query = query.Where(c => c.UserId == UserId);
+            query = query.Where(c => c.UserId == userId);
         }
-        if (RoomId.HasValue)
+        if (roomId.HasValue)
         {
-            query = query.Where(c => c.RoomId == RoomId);
+            query = query.Where(c => c.RoomId == roomId);
         }
 
         List<Bookings> bookings = await query

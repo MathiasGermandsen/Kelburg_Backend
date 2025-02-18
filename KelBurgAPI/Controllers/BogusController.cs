@@ -91,9 +91,9 @@ public class BogusController : ControllerBase
     }
 
     [HttpPost("GenBookings")]
-    public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int MaxCount = 10)
+    public async Task<ActionResult<List<BookingCreateDTO>>> GenBookings(int count = 10)
     {
-        if (MaxCount <= 0)
+        if (count <= 0)
         {
             return BadRequest("Count must be greater than zero.");
         }
@@ -122,7 +122,7 @@ public class BogusController : ControllerBase
         
         List<BookingCreateDTO> bookingsGenerated = new List<BookingCreateDTO>();
 
-        for (int i = 1; i <= MaxCount; i++)
+        for (int i = 1; i <= count; i++)
         {
             Random rand = new Random();
             bool withCar = rand.Next(0, 3) == 2 ? true : false;
@@ -216,9 +216,9 @@ public class BogusController : ControllerBase
     }
 
     [HttpPost("GenCars")]
-    public async Task<ActionResult<List<HotelCarsDTO>>> GenCar(int MaxCount = 10)
+    public async Task<ActionResult<List<HotelCarsDTO>>> GenCar(int count = 10)
     {
-        List<HotelCarsDTO> generatedCars = BogusHotelCars.GenCars(MaxCount);
+        List<HotelCarsDTO> generatedCars = BogusHotelCars.GenCars(count);
         List<HotelCars> mappedCars = new List<HotelCars>();
         foreach (HotelCarsDTO currentCar in generatedCars)
         {

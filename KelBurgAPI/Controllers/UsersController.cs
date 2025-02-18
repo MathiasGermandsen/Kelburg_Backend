@@ -85,7 +85,7 @@ public class UsersController : ControllerBase
 
     [HttpGet("read")]
     [Authorize]
-    public async Task<ActionResult<IEnumerable<Users>>> GetUsers(int? userId, string? FirstName, string? LastName, int pageSize = 100, int pageNumber = 1) 
+    public async Task<ActionResult<IEnumerable<Users>>> GetUsers(int? userId, string? firstName, string? lastName, int pageSize = 100, int pageNumber = 1) 
     {
         if (pageNumber < 1 || pageSize < 1)
         {
@@ -99,14 +99,14 @@ public class UsersController : ControllerBase
             query = query.Where(c => c.Id == userId);
         }
         
-        if (!string.IsNullOrEmpty(FirstName))
+        if (!string.IsNullOrEmpty(firstName))
         {
-            query = query.Where(c => c.FirstName.ToLower().Contains(FirstName.ToLower()));
+            query = query.Where(c => c.FirstName.ToLower().Contains(firstName.ToLower()));
         }
         
-        if (!string.IsNullOrEmpty(LastName))
+        if (!string.IsNullOrEmpty(lastName))
         {
-            query = query.Where(c => c.LastName.ToLower().Contains(LastName.ToLower()));
+            query = query.Where(c => c.LastName.ToLower().Contains(lastName.ToLower()));
         }
 
         List<Users> users = await query

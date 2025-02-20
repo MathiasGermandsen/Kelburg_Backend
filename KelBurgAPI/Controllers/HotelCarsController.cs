@@ -20,6 +20,7 @@ namespace KelBurgAPI.Controllers
         }
 
         [HttpPost("create")]
+
         public async Task<ActionResult<HotelCars>> CreateCar([FromBody] HotelCarsDTO hotelCars)
         {
             if (hotelCars == null)
@@ -38,10 +39,10 @@ namespace KelBurgAPI.Controllers
             _context.HotelCars.Add(carsToBeCreated);
             await _context.SaveChangesAsync();  
             return carsToBeCreated;
-        } 
-        
+        }
+
         [HttpGet("read")]
-        public async Task<ActionResult<IEnumerable<HotelCars>>> GetCars(int? carId, int pageSize = 100, int pageNumber = 1)
+        public async Task<ActionResult<IEnumerable<HotelCars>>> GetHotelCars(int? carId, int? carSize, int pageSize = 100, int pageNumber = 1)
         {
             if (pageNumber < 1 || pageSize < 1)
             {
@@ -54,28 +55,33 @@ namespace KelBurgAPI.Controllers
             {
                 query = query.Where(c => c.Id == carId);
             }
-           
-            List<HotelCars> hotelCars = await query
+            
+            if (carSize.HasValue)
+            {
+                query = query.Where(c => c.Size == carSize);
+            }
+
+            List<HotelCars> cars = await query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            return Ok(hotelCars);
+            return Ok(cars);
         }
         
         [HttpDelete("delete")]
-        public async Task<ActionResult<Rooms>> DeleteCar(int carId)
+        public async Task<ActionResult<Bookings>> DeleteCar(int carId)
         {
-            HotelCars car = await _context.HotelCars.FindAsync(carId);
-        
-            if (car == null)
+            HotelCars carToDelete = await _context.HotelCars.FindAsync(carId);
+
+            if (carToDelete == null)
             {
                 return NotFound("Car not found");
             }
-        
-            _context.HotelCars.Remove(car);
+
+            _context.HotelCars.Remove(await _context.HotelCars.FindAsync(carId));
             await _context.SaveChangesAsync();
-            return Ok(car);
+            return Ok(carToDelete);
         }
     }
 }

@@ -10,14 +10,32 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using KelBurgAPI.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using System.IO;
+
+
 
 namespace KelBurgAPI.Controllers;
+
+public static class SecretHelper
+{
+    public static string GetSecretValue(string keyOrFilePath)
+    {
+        if (!string.IsNullOrEmpty(keyOrFilePath) && File.Exists(keyOrFilePath))
+        {
+            return File.ReadAllText(keyOrFilePath).Trim();
+        }
+        return keyOrFilePath;
+    }
+}
 
 [Route("api/[controller]")]
 [ApiController]
 
 public class UsersController : ControllerBase
 {
+    
+    
     private readonly DatabaseContext _context;
     private readonly IConfiguration _configuration;
 
@@ -66,7 +84,8 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("read")]
-    public async Task<ActionResult<IEnumerable<Users>>> GetUsers(int? userId, string? FirstName, string? LastName, int pageSize = 100, int pageNumber = 1) 
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Users>>> GetUsers(int? userId, string? firstName, string? lastName, int pageSize = 100, int pageNumber = 1) 
     {
         if (pageNumber < 1 || pageSize < 1)
         {
@@ -80,14 +99,14 @@ public class UsersController : ControllerBase
             query = query.Where(c => c.Id == userId);
         }
         
-        if (!string.IsNullOrEmpty(FirstName))
+        if (!string.IsNullOrEmpty(firstName))
         {
-            query = query.Where(c => c.FirstName.ToLower().Contains(FirstName.ToLower()));
+            query = query.Where(c => c.FirstName.ToLower().Contains(firstName.ToLower()));
         }
         
-        if (!string.IsNullOrEmpty(LastName))
+        if (!string.IsNullOrEmpty(lastName))
         {
-            query = query.Where(c => c.LastName.ToLower().Contains(LastName.ToLower()));
+            query = query.Where(c => c.LastName.ToLower().Contains(lastName.ToLower()));
         }
 
         List<Users> users = await query
@@ -106,6 +125,7 @@ public class UsersController : ControllerBase
         {
             return Unauthorized(new { message = "Invalid email or password." });
         }
+        
         var token = GenerateJwtToken(user);
         return Ok(new { token, user.FirstName, user.Id });
     }
@@ -127,6 +147,9 @@ public class UsersController : ControllerBase
     
     private string GenerateJwtToken(Users user)
     {
+        var jwtKey = SecretHelper.GetSecretValue(_configuration["JwtSettings:Key"]);
+        var jwtIssuer = SecretHelper.GetSecretValue(_configuration["JwtSettings:Issuer"]);
+        var jwtAudience = SecretHelper.GetSecretValue(_configuration["JwtSettings:Audience"]);
         Claim[] claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -135,12 +158,12 @@ public class UsersController : ControllerBase
         };
 
         SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes
-            (_configuration["JwtSettings:Key"]));
+            (jwtKey));
         SigningCredentials? creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         JwtSecurityToken token = new JwtSecurityToken(
-            _configuration["JwtSettings:Issuer"],
-            _configuration["JwtSettings:Audience"],
+            jwtIssuer,
+            jwtAudience,
             claims,
             expires: DateTime.Now.AddMinutes(30),
             signingCredentials: creds);
@@ -162,4 +185,6 @@ public class UsersController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(user);
     }
+    
+
 }

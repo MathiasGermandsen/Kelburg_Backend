@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KelBurgAPI.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20250214102007_Backend_database2")]
-    partial class Backend_database2
+    [Migration("20250217073947_Backend_database")]
+    partial class Backend_database
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

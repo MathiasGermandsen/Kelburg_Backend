@@ -67,6 +67,11 @@ namespace KelBurgAPI
                 var jwtKey = GetSecretValue(Configuration["JwtSettings:Key"]);
                 var jwtIssuer = GetSecretValue(Configuration["JwtSettings:Issuer"]);
                 var jwtAudience = GetSecretValue(Configuration["JwtSettings:Audience"]);
+                
+                
+                Console.WriteLine("jsonwebtoken"+jwtKey);
+                Console.WriteLine("issuer"+jwtIssuer);
+                Console.WriteLine("audience"+jwtAudience);
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {

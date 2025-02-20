@@ -21,7 +21,7 @@ namespace KelBurgAPI.Controllers
 
         [HttpPost("create")]
 
-        public async Task<ActionResult<HotelCars>> CreateCars([FromBody] HotelCarsDTO hotelCars)
+        public async Task<ActionResult<HotelCars>> CreateCar([FromBody] HotelCarsDTO hotelCars)
         {
             if (hotelCars == null)
             {
@@ -55,6 +55,7 @@ namespace KelBurgAPI.Controllers
             {
                 query = query.Where(c => c.Id == carId);
             }
+            
             if (carSize.HasValue)
             {
                 query = query.Where(c => c.Size == carSize);

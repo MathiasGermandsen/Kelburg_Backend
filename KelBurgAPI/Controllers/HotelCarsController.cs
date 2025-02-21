@@ -69,6 +69,28 @@ namespace KelBurgAPI.Controllers
             return Ok(cars);
         }
         
+        [HttpGet("availableBetweenDates")]
+        public async Task<ActionResult<IEnumerable<HotelCars>>> GetAvailableBetweenDates(DateTime startDate, DateTime endDate, int? carSize, int pageSize = 100, int pageNumber = 1)
+        {
+            List<HotelCars> allCars = await _context.HotelCars.ToListAsync();
+            List<Bookings> allBookings = await _context.Booking.ToListAsync();
+
+            List<HotelCars> availableCars = allCars
+                .Where(car =>
+                    (!carSize.HasValue || car.Size == carSize.Value) &&
+                    !allBookings.Any(booking =>
+                        booking.RoomId == car.Id &&
+                        ((booking.StartDate < endDate && booking.EndDate > startDate) ||
+                         (startDate < booking.EndDate && endDate > booking.StartDate))
+                    )
+                )
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize) 
+                .ToList();
+
+            return Ok(availableCars);
+        }
+        
         [HttpDelete("delete")]
         public async Task<ActionResult<Bookings>> DeleteCar(int carId)
         {

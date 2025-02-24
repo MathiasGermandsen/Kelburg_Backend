@@ -2,6 +2,7 @@
 using KelBurgAPI.Models;
 using KelBurgAPI.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace KelBurgAPI.Controllers;
 
@@ -82,9 +83,17 @@ public class ServicesController : ControllerBase
     }
 
     [HttpGet("read")]
-    public async Task<ActionResult<List<Services>>> GetServices()
+    public async Task<ActionResult<List<Services>>> GetServices(int? serviceId)
     {
-        List<Services> services = _context.Services.ToList();
+        
+        IQueryable<Services> query = _context.Services.AsQueryable();
+
+        if (serviceId.HasValue)
+        {
+            query = query.Where(s => s.Id == serviceId.Value);
+        }
+        
+        List<Services> services = await query.ToListAsync();
         return services;
     }
 

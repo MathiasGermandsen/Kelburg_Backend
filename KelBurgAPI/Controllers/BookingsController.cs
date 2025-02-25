@@ -32,8 +32,8 @@ public class BookingsController : ControllerBase
             PeopleCount = booking.PeopleCount,
             BookingPrice = 0, 
             RoomId = booking.RoomId,
-            StartDate = booking.StartDate,
-            EndDate = booking.EndDate,
+            StartDate = booking.StartDate.ToUniversalTime(),
+            EndDate = booking.EndDate.ToUniversalTime(),
             ServiceId = booking.ServiceId,
             CarId = booking.CarId,
         };

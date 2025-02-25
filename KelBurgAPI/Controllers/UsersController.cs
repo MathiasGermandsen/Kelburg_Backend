@@ -12,8 +12,7 @@ using KelBurgAPI.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.IO;
-
-
+using System.Net.Http.Headers;
 
 namespace KelBurgAPI.Controllers;
 
@@ -115,6 +114,35 @@ public class UsersController : ControllerBase
             .ToListAsync();
 
         return Ok(users);
+    }
+    
+    [HttpGet("getUserFromToken")]
+    //[Authorize] Don't know how to make it work with Authorize - Arian
+    public async Task<ActionResult<Users>> GetUserFromToken(string jwtToken)
+    {
+        if (string.IsNullOrEmpty(jwtToken))
+        {
+            return BadRequest("Token is required");
+        }
+
+        JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
+        JwtSecurityToken token = handler.ReadJwtToken(jwtToken);
+
+        string? userId = token.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized("Invalid token");
+        }
+
+        Users? user = await _context.Users.FindAsync(int.Parse(userId));
+
+        if (user == null)
+        {
+            return NotFound("User not found");
+        }
+
+        return Ok(user);
     }
     
     [HttpPost("login")]

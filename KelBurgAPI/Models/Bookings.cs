@@ -15,7 +15,7 @@ public class Bookings : Common
     public int CalculateBookingPrice(Bookings currentBooking, Rooms selectedRoom, HotelCars selectedCar, List<Services> services)
     {
         int bookingPrice = 0;
-        int vacationDays = (currentBooking.EndDate - currentBooking.StartDate).Days;
+        int vacationDays = (currentBooking.EndDate - currentBooking.StartDate).Days+1;
 
         if (vacationDays == 0)
         {

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using KelBurgAPI.Payment;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace KelBurgAPI
 {
@@ -39,21 +41,26 @@ namespace KelBurgAPI
                     }
                 });
             });
+            
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
 
             IConfiguration Configuration = builder.Configuration;
             
-            string secretFilePath = Environment.GetEnvironmentVariable("DefaultConnection");
+            string dbConFileName = Environment.GetEnvironmentVariable("DefaultConnection");
             string connectionString = null;
-            if (!string.IsNullOrEmpty(secretFilePath) && File.Exists(secretFilePath))
+            
+            if (!string.IsNullOrEmpty(dbConFileName) && File.Exists(dbConFileName))
             {
-                connectionString = File.ReadAllText(secretFilePath).Trim();
+                connectionString = File.ReadAllText(dbConFileName).Trim();
             }
             else
             {
                 connectionString = Configuration.GetConnectionString("DefaultConnection")
                                    ?? throw new InvalidOperationException("DefaultConnection string is not set.");
             }
-
+            
+            string secretApiKey = Configuration["Stripe:SecretApiKey"];
+            
             builder.Services.AddDbContext<DatabaseContext>(options =>
                 options.UseNpgsql(connectionString));
             
@@ -110,7 +117,7 @@ namespace KelBurgAPI
         {
             using (var scope = app.Services.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+                DatabaseContext dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
                 dbContext.Database.Migrate();
             }
         }

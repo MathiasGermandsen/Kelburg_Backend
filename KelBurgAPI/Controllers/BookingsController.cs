@@ -51,10 +51,13 @@ public class BookingsController : ControllerBase
         {
             RoomAvailableAtDate =
                 roomInstance.IsRoomAvailableAtDate(allExistingBookings, selectedRoom, bookingToBeCreated);
-           
-            CarAvailableAtDate = !allExistingBookings.Any(b =>
-                b.CarId == booking.CarId &&
-                (booking.StartDate < b.EndDate && booking.EndDate > b.StartDate));
+
+            if (selectedCar != null)
+            {
+                CarAvailableAtDate = !allExistingBookings.Any(b =>
+                    b.CarId == booking.CarId &&
+                    (booking.StartDate < b.EndDate && booking.EndDate > b.StartDate));
+            }
         }
         
         if (!RoomAvailableAtDate)

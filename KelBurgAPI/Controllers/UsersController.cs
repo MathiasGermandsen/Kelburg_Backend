@@ -148,14 +148,14 @@ public class UsersController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(UserLoginDTO login)
     {
-        var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == login.Email);
+        Users user = await _context.Users.SingleOrDefaultAsync(u => u.Email == login.Email);
         if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.HashedPassword))
         {
             return Unauthorized(new { message = "Invalid email or password." });
         }
         
-        var token = GenerateJwtToken(user);
-        return Ok(new { token, user.FirstName, user.Id });
+        string token = GenerateJwtToken(user);
+        return Ok(token);
     }
     
     private bool IsPasswordSecure(string password)

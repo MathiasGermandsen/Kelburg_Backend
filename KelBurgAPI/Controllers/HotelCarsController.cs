@@ -79,7 +79,7 @@ namespace KelBurgAPI.Controllers
                 .Where(car =>
                     (!carSize.HasValue || car.Size == carSize.Value) &&
                     !allBookings.Any(booking =>
-                        booking.RoomId == car.Id &&
+                        booking.CarId == car.Id &&
                         ((booking.StartDate < endDate && booking.EndDate > startDate) ||
                          (startDate < booking.EndDate && endDate > booking.StartDate))
                     )

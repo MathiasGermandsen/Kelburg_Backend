@@ -10,7 +10,7 @@ services:
     secrets:
       - database
       - dbuser
-      - dbpassword 
+      - dbpassword
     ports:
       - "5432:5432"
     volumes:
@@ -32,6 +32,13 @@ services:
       - db
     ports:
       - "8080:8080"
+
+  frontend:
+    image: kelburg_frontend:latest
+    depends_on:
+      - api
+    ports:
+      - "13000:13000"
 
 secrets:
   database:

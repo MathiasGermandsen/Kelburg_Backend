@@ -79,6 +79,7 @@ public class RoomsController : ControllerBase
     public async Task<ActionResult<IEnumerable<Rooms>>> GetAvailableBetweenDates(DateTime startDate, DateTime endDate,
         int? roomSize, int pageSize = 100, int pageNumber = 1)
     {
+
         List<Rooms> allRooms = await _context.Rooms.ToListAsync();
         List<Bookings> allBookings = await _context.Booking.ToListAsync();
 

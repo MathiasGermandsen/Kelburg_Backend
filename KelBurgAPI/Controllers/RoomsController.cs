@@ -7,7 +7,6 @@ namespace KelBurgAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-
 public class RoomsController : ControllerBase
 {
     private readonly DatabaseContext _context;
@@ -32,26 +31,28 @@ public class RoomsController : ControllerBase
             ViewType = room.ViewType,
             PricePrNight = room.PricePrNight,
         };
-        
+
         _context.Rooms.Add(newRoom);
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetRooms), new { id = newRoom.Id }, newRoom);
     }
 
     [HttpGet("read")]
-    public async Task<ActionResult<IEnumerable<Rooms>>> GetRooms(int? roomId, int? roomSize, int pageSize = 100, int pageNumber = 1)
+    public async Task<ActionResult<IEnumerable<Rooms>>> GetRooms(int? roomId, int? roomSize, int pageSize = 100,
+        int pageNumber = 1)
     {
         if (pageNumber < 1 || pageSize < 1)
         {
             return BadRequest("PageNumber and size must be greater than 0");
         }
-        
+
         IQueryable<Rooms> query = _context.Rooms.AsQueryable();
 
         if (roomId.HasValue)
         {
             query = query.Where(c => c.Id == roomId);
         }
+
         if (roomSize.HasValue)
         {
             query = query.Where(c => c.Size == roomSize);
@@ -75,8 +76,10 @@ public class RoomsController : ControllerBase
     }
 
     [HttpGet("availableBetweenDates")]
-    public async Task<ActionResult<IEnumerable<Rooms>>> GetAvailableBetweenDates(DateTime startDate, DateTime endDate, int? roomSize, int pageSize = 100, int pageNumber = 1)
+    public async Task<ActionResult<IEnumerable<Rooms>>> GetAvailableBetweenDates(DateTime startDate, DateTime endDate,
+        int? roomSize, int pageSize = 100, int pageNumber = 1)
     {
+
         List<Rooms> allRooms = await _context.Rooms.ToListAsync();
         List<Bookings> allBookings = await _context.Booking.ToListAsync();
 
@@ -90,7 +93,30 @@ public class RoomsController : ControllerBase
                 )
             )
             .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize) 
+            .Take(pageSize)
+            .ToList();
+
+        return Ok(availableRooms);
+    }
+
+    [HttpGet("unavailableBetweenDates")]
+    public async Task<ActionResult<IEnumerable<Rooms>>> GetUnavailableBetweenDates(DateTime startDate, DateTime endDate,
+        int? roomSize, int pageSize = 100, int pageNumber = 1)
+    {
+        List<Rooms> allRooms = await _context.Rooms.ToListAsync();
+        List<Bookings> allBookings = await _context.Booking.ToListAsync();
+
+        List<Rooms> availableRooms = allRooms
+            .Where(room =>
+                (!roomSize.HasValue || room.Size == roomSize.Value) &&
+                allBookings.Any(booking =>
+                    booking.RoomId == room.Id &&
+                    ((booking.StartDate < endDate && booking.EndDate > startDate) ||
+                     (startDate < booking.EndDate && endDate > booking.StartDate))
+                )
+            )
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .ToList();
 
         return Ok(availableRooms);
@@ -101,12 +127,12 @@ public class RoomsController : ControllerBase
     public async Task<ActionResult<Rooms>> DeleteRoom(int roomId)
     {
         Rooms room = await _context.Rooms.FindAsync(roomId);
-        
+
         if (room == null)
         {
             return NotFound("Room not found");
         }
-        
+
         _context.Rooms.Remove(room);
         await _context.SaveChangesAsync();
         return Ok(room);

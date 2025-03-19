@@ -39,7 +39,7 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet("read")]
-    public async Task<ActionResult<IReadOnlyList<Tickets>>> GetTickets(int? fromUserId, string? ticketStatus, string? ticketCategory, int pageSize = 100, int pageNumber = 1)
+    public async Task<ActionResult<IReadOnlyList<Tickets>>> GetTickets(int? ticketId, int? fromUserId, string? ticketStatus, string? ticketCategory, int pageSize = 100, int pageNumber = 1)
     {
         if (pageNumber < 1 || pageSize < 1)
         {
@@ -48,6 +48,10 @@ public class TicketsController : ControllerBase
         
         IQueryable<Tickets> query = _context.Tickets.AsQueryable();
 
+        if (ticketId.HasValue)
+        {
+            query = query.Where(c => c.Id == ticketId);
+        } 
         if (fromUserId.HasValue)
         {
             query = query.Where(c => c.FromUser == fromUserId);

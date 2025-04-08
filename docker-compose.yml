@@ -29,7 +29,7 @@ services:
       - Issuer
       - Audience
     depends_on:
-      - db
+      - database
     ports:
       - "8080:8080"
 secrets:

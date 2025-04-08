@@ -123,30 +123,6 @@ public class RoomsController : ControllerBase
         return Ok(availableRooms);
     }
 
-    [HttpGet("unavailableBetweenDates")]
-
-    public async Task<ActionResult<IEnumerable<Rooms>>> GetUnavailableBetweenDates(DateTime startDate, DateTime endDate, int? roomSize, int pageSize = 100, int pageNumber = 1)
-    {
-        List<Rooms> allRooms = await _context.Rooms.ToListAsync();
-        List<Bookings> allBookings = await _context.Booking.ToListAsync();
-        List<Rooms> availableRooms = allRooms
-
-            .Where(room =>
-                (!roomSize.HasValue || room.Size == roomSize.Value) &&
-                allBookings.Any(booking =>
-                    booking.RoomId == room.Id &&
-                    ((booking.StartDate < endDate && booking.EndDate > startDate) ||
-                     (startDate < booking.EndDate && endDate > booking.StartDate))
-                )
-            )
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToList();
-        
-        return Ok(availableRooms);
-
-    }
-
     [HttpDelete("delete")]
     public async Task<ActionResult<Rooms>> DeleteRoom(int roomId)
     {

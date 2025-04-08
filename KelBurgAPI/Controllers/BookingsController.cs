@@ -112,53 +112,18 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPut("update")]
-    public async Task<ActionResult<Bookings>> EditBooking(int bookingIdToChange,
-        [FromQuery] BookingEditDTO editedBooking)
+    public async Task<ActionResult<Bookings>> EditBooking(int bookingIdToChange, int carId, int serviceId)
     {
         Bookings bookingToEdit = await _context.Booking.FindAsync(bookingIdToChange);
-
-        Rooms selectedRoom = await _context.Rooms.FindAsync(editedBooking.RoomId);
-        HotelCars selectedCar = await _context.HotelCars.FindAsync(editedBooking.CarId);
+        
+        HotelCars changedCar = await _context.HotelCars.FindAsync(carId);
         
         List<Services> services = await _context.Services.ToListAsync();
-
-        List<Bookings> allExistingBookings = _context.Booking.ToList();
-
-        if (allExistingBookings.Contains(bookingToEdit))
-        {
-            allExistingBookings.Remove(bookingToEdit);
-        }
-
-        if (bookingToEdit == null)
-        {
-            return NotFound();
-        }
-
-        PropertyInfo[] dtoProperties = typeof(BookingEditDTO).GetProperties();
-        PropertyInfo[] existingProperties = typeof(Bookings).GetProperties();
-
-        foreach (PropertyInfo dtoProp in dtoProperties)
-        {
-            object? newValue = dtoProp.GetValue(editedBooking);
-            if (newValue != null)
-            {
-                PropertyInfo? existingProp = existingProperties.FirstOrDefault(p => p.Name == dtoProp.Name);
-                if (existingProp != null && existingProp.CanWrite)
-                {
-                    existingProp.SetValue(bookingToEdit, newValue);
-                }
-            }
-        }
-
-        if (selectedRoom != null)
-        {
-            if (!selectedRoom.IsRoomAvailableAtDate(allExistingBookings, selectedRoom, bookingToEdit))
-            {
-                return BadRequest("Room is not available at this date");
-            }
-        }
-
-        bookingToEdit.BookingPrice = bookingToEdit.CalculateBookingPrice(bookingToEdit, selectedRoom, selectedCar, services);
+        
+        bookingToEdit.CarId = carId;
+        bookingToEdit.ServiceId = serviceId;
+       
+        bookingToEdit.BookingPrice = bookingToEdit.CalculateBookingPrice(bookingToEdit, await _context.Rooms.FindAsync(bookingToEdit.RoomId), changedCar, services);
 
         await _context.SaveChangesAsync();
         return Ok(bookingToEdit);

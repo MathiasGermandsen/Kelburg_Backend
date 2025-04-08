@@ -39,7 +39,7 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet("read")]
-    public async Task<ActionResult<IReadOnlyList<Tickets>>> GetTickets(int? fromUserId, int pageSize = 100, int pageNumber = 1)
+    public async Task<ActionResult<IReadOnlyList<Tickets>>> GetTickets(int? ticketId, int? fromUserId, string? ticketStatus, string? ticketCategory, int pageSize = 100, int pageNumber = 1)
     {
         if (pageNumber < 1 || pageSize < 1)
         {
@@ -48,9 +48,23 @@ public class TicketsController : ControllerBase
         
         IQueryable<Tickets> query = _context.Tickets.AsQueryable();
 
+        if (ticketId.HasValue)
+        {
+            query = query.Where(c => c.Id == ticketId);
+        } 
         if (fromUserId.HasValue)
         {
             query = query.Where(c => c.FromUser == fromUserId);
+        }
+        
+        if (ticketStatus != null)
+        {
+            query = query.Where(c => c.Status == ticketStatus);
+        }
+        
+        if (ticketCategory != null)
+        {
+            query = query.Where(c => c.Category == ticketCategory);
         }
 
         List<Tickets> tickets = await query
@@ -59,6 +73,21 @@ public class TicketsController : ControllerBase
             .ToListAsync();
 
         return Ok(tickets);
+    }
+    
+    [HttpPatch("updateStatus")]
+    public async Task<ActionResult<Tickets>> UpdateTicketStatus(int ticketId, string newStatus)
+    {
+        Tickets ticketToUpdate = await _context.Tickets.FindAsync(ticketId);
+
+        if (ticketToUpdate == null)
+        {
+            return NotFound("Ticket not found");
+        }
+
+        ticketToUpdate.Status = newStatus;
+        await _context.SaveChangesAsync();
+        return Ok(ticketToUpdate);
     }
     
     [HttpDelete("delete")]

@@ -21,6 +21,15 @@ public class ServicesController : ControllerBase
     [HttpPost("createPredefinedServices")]
     public async Task<ActionResult<List<Services>>> CreatePredefinedServices()
     {
+        ServiceCreateDTO NoService = new ServiceCreateDTO()
+        {
+            AllInclusive = false,
+            Breakfast = false,
+            Dinner = false,
+            BreakfastAndDinner = false,
+            PricePrPersonPrNight = 7
+        };
+        
         ServiceCreateDTO AllInclusiveService = new ServiceCreateDTO()
         {
             AllInclusive = true,
@@ -57,6 +66,7 @@ public class ServicesController : ControllerBase
             PricePrPersonPrNight = 130
         };
         List<ServiceCreateDTO> servicesDTOs = new List<ServiceCreateDTO>();
+        servicesDTOs.Add(NoService);
         servicesDTOs.Add(AllInclusiveService);
         servicesDTOs.Add(BreakfastService);
         servicesDTOs.Add(DinnerService);

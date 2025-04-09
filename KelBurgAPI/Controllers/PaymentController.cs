@@ -26,8 +26,9 @@ public class PaymentController : ControllerBase
     {
         Rooms selectedRoom = _context.Rooms.Find(booking.RoomId);
         Services selectedService = _context.Services.Find(booking.ServiceId);
-        
-        ServicePaymentDTO mappedService = new ServicePaymentDTO()
+        ServicePaymentDTO mappedService = new ServicePaymentDTO();
+
+        mappedService = new ServicePaymentDTO()
         {
             AllInclusive = selectedService.AllInclusive,
             Breakfast = selectedService.Breakfast,
@@ -35,13 +36,13 @@ public class PaymentController : ControllerBase
             BreakfastAndDinner = selectedService.BreakfastAndDinner,
             PricePrPersonPrNight = selectedService.PricePrPersonPrNight,
         };
-        
+    
         mappedService.PrettyName = mappedService.AllInclusive 
             ? "All Inclusive" : mappedService.Breakfast 
-            ? "Breakfast" : mappedService.Dinner 
-            ? "Dinner" : mappedService.BreakfastAndDinner 
-            ? "Breakfast and Dinner" : "No service";
-        
+                ? "Breakfast" : mappedService.Dinner 
+                    ? "Dinner" : mappedService.BreakfastAndDinner 
+                        ? "Breakfast and Dinner" : "No Service";
+            
         HotelCars car = _context.HotelCars.Find(booking.CarId);
         
         Session? session = _paymentService.CreateCheckoutSession(booking, selectedRoom, mappedService, car);

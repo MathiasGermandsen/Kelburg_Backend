@@ -132,6 +132,7 @@ public class BookingsController : ControllerBase
     [HttpDelete("delete")]
     public async Task<ActionResult<Bookings>> DeleteBooking(int bookingId)
     {
+        var room = await _context.Rooms.FindAsync(bookingId);
         Bookings bookingsToDelete = await _context.Booking.FindAsync(bookingId);
 
         if (bookingsToDelete == null)

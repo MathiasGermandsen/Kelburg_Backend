@@ -208,6 +208,13 @@ public class UsersController : ControllerBase
         {
             return NotFound("User not found");
         }
+
+        var userBookings = _context.Booking.Where(b => b.UserId == userId).ToList();
+
+        if (userBookings.Any())
+        {
+            _context.Booking.RemoveRange(userBookings);
+        }
         
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();

@@ -117,7 +117,6 @@ public class UsersController : ControllerBase
     }
     
     [HttpGet("getUserFromToken")]
-    //[Authorize] Don't know how to make it work with Authorize - Arian
     public async Task<ActionResult<Users>> GetUserFromToken(string jwtToken)
     {
         if (string.IsNullOrEmpty(jwtToken))
@@ -209,11 +208,11 @@ public class UsersController : ControllerBase
             return NotFound("User not found");
         }
 
-        var userBookings = _context.Booking.Where(b => b.UserId == userId).ToList();
+        var userBookings = _context.booking.Where(b => b.UserId == userId).ToList();
 
         if (userBookings.Any())
         {
-            _context.Booking.RemoveRange(userBookings);
+            _context.booking.RemoveRange(userBookings);
         }
         
         _context.users.Remove(user);

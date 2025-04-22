@@ -136,7 +136,7 @@ public class RoomsController : ControllerBase
             return NotFound("Room not found");
         }
         
-        bool hasActiveBookings = _context.Booking.Any(b=> b.RoomId == room.Id && b.EndDate.ToUniversalTime().Date >= DateTime.Now.ToUniversalTime().Date);
+        bool hasActiveBookings = _context.booking.Any(b=> b.RoomId == room.Id && b.EndDate.ToUniversalTime().Date >= DateTime.Now.ToUniversalTime().Date);
 
         if (hasActiveBookings)
         {

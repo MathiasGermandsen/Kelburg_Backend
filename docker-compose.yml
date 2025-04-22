@@ -36,11 +36,11 @@ services:
     ports:
       - "8080:8080"
 secrets:
-    database:
+    database_new:
       external: true
-    dbuser:
+    dbuser_new:
       external: true
-    dbpassword:
+    dbpassword_new:
       external: true
     DefaultConnection:
       external: true

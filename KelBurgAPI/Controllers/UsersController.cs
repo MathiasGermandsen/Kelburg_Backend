@@ -199,7 +199,7 @@ public class UsersController : ControllerBase
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
     
-    [HttpDelete("delete")]
+    [HttpDelete("delete")] 
     public async Task<ActionResult<Users>> DeleteUser(int userId)
     {
         Users user = await _context.Users.FindAsync(userId);

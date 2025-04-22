@@ -3,11 +3,11 @@
 services:
   
   db_new:
-    image: postgres:17
+    image: postgres:17.4-alpine
     environment:
-      POSTGRES_DB: /run/secrets/database_new
-      POSTGRES_USER: /run/secrets/dbuser_new
-      POSTGRES_PASSWORD: /run/secrets/dbpassword_new
+      POSTGRES_DB_FILE: /run/secrets/database_new
+      POSTGRES_USER_FILE: /run/secrets/dbuser_new
+      POSTGRES_PASSWORD:FILE: /run/secrets/dbpassword_new
     secrets:
       - database_new
       - dbuser_new

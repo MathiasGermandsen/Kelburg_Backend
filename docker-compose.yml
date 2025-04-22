@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB_FILE: /run/secrets/database_new
       POSTGRES_USER_FILE: /run/secrets/dbuser_new
-      POSTGRES_PASSWORD:FILE: /run/secrets/dbpassword_new
+      POSTGRES_PASSWORD_FILE: /run/secrets/dbpassword_new
     secrets:
       - database_new
       - dbuser_new

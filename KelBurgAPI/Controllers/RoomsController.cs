@@ -84,6 +84,7 @@ public class RoomsController : ControllerBase
         List<Rooms> allRooms = await _context.rooms.ToListAsync();
         List<Bookings> allBookings = await _context.booking.ToListAsync();
 
+
         List<Rooms> availableRooms = allRooms
             .Where(room =>
                 (!roomSize.HasValue || room.Size == roomSize.Value) &&
@@ -126,14 +127,24 @@ public class RoomsController : ControllerBase
     [HttpDelete("delete")]
     public async Task<ActionResult<Rooms>> DeleteRoom(int roomId)
     {
+
         Rooms room = await _context.rooms.FindAsync(roomId);
+
 
         if (room == null)
         {
             return NotFound("Room not found");
         }
+        
+        bool hasActiveBookings = _context.Booking.Any(b=> b.RoomId == room.Id && b.EndDate.ToUniversalTime().Date >= DateTime.Now.ToUniversalTime().Date);
 
+        if (hasActiveBookings)
+        {
+            return BadRequest("Cannot delete room cause of booking");
+        }
+        
         _context.rooms.Remove(room);
+  
         await _context.SaveChangesAsync();
         return Ok(room);
     }

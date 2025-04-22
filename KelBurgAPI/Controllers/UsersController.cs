@@ -199,7 +199,7 @@ public class UsersController : ControllerBase
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
     
-    [HttpDelete("delete")]
+    [HttpDelete("delete")] 
     public async Task<ActionResult<Users>> DeleteUser(int userId)
     {
         Users user = await _context.users.FindAsync(userId);
@@ -207,6 +207,13 @@ public class UsersController : ControllerBase
         if (user == null)
         {
             return NotFound("User not found");
+        }
+
+        var userBookings = _context.Booking.Where(b => b.UserId == userId).ToList();
+
+        if (userBookings.Any())
+        {
+            _context.Booking.RemoveRange(userBookings);
         }
         
         _context.users.Remove(user);

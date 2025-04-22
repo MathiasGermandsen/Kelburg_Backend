@@ -134,6 +134,7 @@ public class BookingsController : ControllerBase
     {
         Bookings bookingsToDelete = await _context.booking.FindAsync(bookingId);
 
+
         if (bookingsToDelete == null)
         {
             return NotFound("Booking not found");

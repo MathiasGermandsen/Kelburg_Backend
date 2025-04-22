@@ -2,22 +2,24 @@
 
 services:
   
-# FOR EASIER RUN ON LOCAL SERVERS WE USE NEON.TECH INSTEAD
+  # FOR EASIER RUN ON LOCAL SERVERS WE USE NEON.TECH INSTEAD
   
-#  db:
-#    image: postgres:17
-#    environment:
-#      POSTGRES_DB: /run/secrets/database
-#      POSTGRES_USER: /run/secrets/dbuser
-#      POSTGRES_PASSWORD: /run/secrets/dbpassword
-#    secrets:
-#      - database
-#      - dbuser
-#      - dbpassword
-#    ports:
-#      - "5432:5432"
-#    volumes:
-#      - pg_data:/var/lib/postgresql/data
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: /run/secrets/database
+      POSTGRES_USER: /run/secrets/dbuser
+      POSTGRES_PASSWORD: /run/secrets/dbpassword
+    secrets:
+      - database
+      - dbuser
+      - dbpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    command: 
+      ["postgres", "-c", "wal_level=logical"]
 
   api:
     image: kelburg_api:latest
@@ -36,20 +38,20 @@ services:
     ports:
       - "8080:8080"
 secrets:
-#  database:
-#    external: true
-#  dbuser:
-#    external: true
-#  dbpassword:
-#    external: true
-  DefaultConnection:
-    external: true
-  Key:
-    external: true
-  Issuer:
-    external: true
-  Audience:
-    external: true
+    database:
+      external: true
+    dbuser:
+      external: true
+    dbpassword:
+      external: true
+    DefaultConnection:
+      external: true
+    Key:
+      external: true
+    Issuer:
+      external: true
+    Audience:
+      external: true
 
 volumes:
   pg_data:

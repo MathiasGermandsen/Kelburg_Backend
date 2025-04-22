@@ -7,10 +7,10 @@ public class DatabaseContext : DbContext
 {
     public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options) { }
     
-    public DbSet<Users> Users { get; set; }
-    public DbSet<Rooms> Rooms { get; set; }
-    public DbSet<Bookings> Booking { get; set; }
-    public DbSet<Tickets> Tickets { get; set; }
-    public DbSet<Services> Services { get; set; }
-    public DbSet<HotelCars> HotelCars { get; set; }
+    public DbSet<Users> users { get; set; }
+    public DbSet<Rooms> rooms { get; set; }
+    public DbSet<Bookings> booking { get; set; }
+    public DbSet<Tickets> tickets { get; set; }
+    public DbSet<Services> services { get; set; }
+    public DbSet<HotelCars> hotelcars { get; set; }
 }

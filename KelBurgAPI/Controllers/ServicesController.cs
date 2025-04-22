@@ -87,7 +87,7 @@ public class ServicesController : ControllerBase
             services.Add(newService);
         }
         
-        _context.Services.AddRange(services);
+        _context.services.AddRange(services);
         await _context.SaveChangesAsync();
         return Ok(services);
     }
@@ -96,7 +96,7 @@ public class ServicesController : ControllerBase
     public async Task<ActionResult<List<Services>>> GetServices(int? serviceId)
     {
         
-        IQueryable<Services> query = _context.Services.AsQueryable();
+        IQueryable<Services> query = _context.services.AsQueryable();
 
         if (serviceId.HasValue)
         {
@@ -110,7 +110,7 @@ public class ServicesController : ControllerBase
     [HttpPatch("changePrice")]
     public async Task<ActionResult<Services>> ChangePriceId(int serviceToChangeId, int newPrice)
     {
-        Services service = await _context.Services.FindAsync(serviceToChangeId);
+        Services service = await _context.services.FindAsync(serviceToChangeId);
         service.PricePrPersonPrNight = newPrice;
         await _context.SaveChangesAsync();
         return Ok(service);

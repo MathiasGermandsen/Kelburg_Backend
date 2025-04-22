@@ -46,7 +46,7 @@ public class BogusController : ControllerBase
             usersMapped.Add(userMapped);
         }
 
-        _context.Users.AddRange(usersMapped);
+        _context.users.AddRange(usersMapped);
         await _context.SaveChangesAsync();
         return Ok(usersMapped);
     }
@@ -84,7 +84,7 @@ public class BogusController : ControllerBase
             roomsMapped.Add(roomMapped);
         }
 
-        _context.Rooms.AddRange(roomsMapped);
+        _context.rooms.AddRange(roomsMapped);
         await _context.SaveChangesAsync();
 
         return Ok(roomsMapped);
@@ -98,9 +98,9 @@ public class BogusController : ControllerBase
             return BadRequest("Count must be greater than zero.");
         }
 
-        List<int> validUserIdList = _context.Users.Select(u => u.Id).ToList();
-        List<Services> servicePrices = _context.Services.ToList();
-        List<Rooms> allRooms = _context.Rooms.ToList();
+        List<int> validUserIdList = _context.users.Select(u => u.Id).ToList();
+        List<Services> servicePrices = _context.services.ToList();
+        List<Rooms> allRooms = _context.rooms.ToList();
 
         if (!validUserIdList.Any())
         {
@@ -117,8 +117,8 @@ public class BogusController : ControllerBase
             return BadRequest("No Service-prices found. Cannot make booking.");
         }
 
-        List<Bookings> allExistingBookings = _context.Booking.ToList();
-        List<HotelCars> allCars = _context.HotelCars.ToList();
+        List<Bookings> allExistingBookings = _context.booking.ToList();
+        List<HotelCars> allCars = _context.hotelcars.ToList();
         
         List<BookingCreateDTO> bookingsGenerated = new List<BookingCreateDTO>();
 
@@ -175,7 +175,7 @@ public class BogusController : ControllerBase
             bookingsMapped.Add(newBooking);
         }
 
-        _context.Booking.AddRange(bookingsMapped);
+        _context.booking.AddRange(bookingsMapped);
         await _context.SaveChangesAsync();
         return Ok(bookingsMapped);
     }
@@ -188,7 +188,7 @@ public class BogusController : ControllerBase
             return BadRequest("Count must be greater than zero.");
         }
         
-        List<int> ValidUserIdList = _context.Users.Select(u => u.Id).ToList();
+        List<int> ValidUserIdList = _context.users.Select(u => u.Id).ToList();
 
         if (!ValidUserIdList.Any())
         {
@@ -210,7 +210,7 @@ public class BogusController : ControllerBase
             ticketsMappedList.Add(ticketMapped);
         }
 
-        _context.Tickets.AddRange(ticketsMappedList);
+        _context.tickets.AddRange(ticketsMappedList);
         await _context.SaveChangesAsync();
         return Ok(ticketsMappedList);
     }
@@ -236,7 +236,7 @@ public class BogusController : ControllerBase
             mappedCars.Add(carsToBeCreated);
         }
 
-        _context.HotelCars.AddRange(mappedCars);
+        _context.hotelcars.AddRange(mappedCars);
         await _context.SaveChangesAsync();
         return Ok(mappedCars);
     }

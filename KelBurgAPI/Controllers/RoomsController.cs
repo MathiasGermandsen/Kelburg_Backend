@@ -80,7 +80,6 @@ public class RoomsController : ControllerBase
     public async Task<ActionResult<IEnumerable<Rooms>>> GetAvailableBetweenDates(DateTime startDate, DateTime endDate,
         int? roomSize, int pageSize = 100, int pageNumber = 1)
     {
-
         List<Rooms> allRooms = await _context.Rooms.ToListAsync();
         List<Bookings> allBookings = await _context.Booking.ToListAsync();
 
@@ -127,12 +126,19 @@ public class RoomsController : ControllerBase
     public async Task<ActionResult<Rooms>> DeleteRoom(int roomId)
     {
         Rooms room = await _context.Rooms.FindAsync(roomId);
-
+        
         if (room == null)
         {
             return NotFound("Room not found");
         }
+        
+        bool hasActiveBookings = _context.Booking.Any(b=> b.RoomId == room.Id && b.EndDate.ToUniversalTime().Date >= DateTime.Now.ToUniversalTime().Date);
 
+        if (hasActiveBookings)
+        {
+            return BadRequest("Cannot delete room cause of booking");
+        }
+        
         _context.Rooms.Remove(room);
         await _context.SaveChangesAsync();
         return Ok(room);

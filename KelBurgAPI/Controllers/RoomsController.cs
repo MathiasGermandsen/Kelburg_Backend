@@ -33,7 +33,7 @@ public class RoomsController : ControllerBase
             PricePrNight = room.PricePrNight,
         };
 
-        _context.Rooms.Add(newRoom);
+        _context.rooms.Add(newRoom);
         await _context.SaveChangesAsync();
         return Ok(newRoom);
     }
@@ -47,7 +47,7 @@ public class RoomsController : ControllerBase
             return BadRequest("PageNumber and size must be greater than 0");
         }
 
-        IQueryable<Rooms> query = _context.Rooms.AsQueryable();
+        IQueryable<Rooms> query = _context.rooms.AsQueryable();
 
         if (roomId.HasValue)
         {
@@ -70,7 +70,7 @@ public class RoomsController : ControllerBase
     [HttpPatch("changePrice")]
     public async Task<ActionResult<Rooms>> ChangePriceId(int roomIdToChange, int newPrice)
     {
-        Rooms roomTopatch = await _context.Rooms.FindAsync(roomIdToChange);
+        Rooms roomTopatch = await _context.rooms.FindAsync(roomIdToChange);
         roomTopatch.PricePrNight = newPrice;
         await _context.SaveChangesAsync();
         return Ok(roomTopatch);
@@ -81,8 +81,8 @@ public class RoomsController : ControllerBase
         int? roomSize, int pageSize = 100, int pageNumber = 1)
     {
 
-        List<Rooms> allRooms = await _context.Rooms.ToListAsync();
-        List<Bookings> allBookings = await _context.Booking.ToListAsync();
+        List<Rooms> allRooms = await _context.rooms.ToListAsync();
+        List<Bookings> allBookings = await _context.booking.ToListAsync();
 
         List<Rooms> availableRooms = allRooms
             .Where(room =>
@@ -104,8 +104,8 @@ public class RoomsController : ControllerBase
     public async Task<ActionResult<IEnumerable<Rooms>>> GetUnavailableBetweenDates(DateTime startDate, DateTime endDate,
         int? roomSize, int pageSize = 100, int pageNumber = 1)
     {
-        List<Rooms> allRooms = await _context.Rooms.ToListAsync();
-        List<Bookings> allBookings = await _context.Booking.ToListAsync();
+        List<Rooms> allRooms = await _context.rooms.ToListAsync();
+        List<Bookings> allBookings = await _context.booking.ToListAsync();
 
         List<Rooms> availableRooms = allRooms
             .Where(room =>
@@ -126,14 +126,14 @@ public class RoomsController : ControllerBase
     [HttpDelete("delete")]
     public async Task<ActionResult<Rooms>> DeleteRoom(int roomId)
     {
-        Rooms room = await _context.Rooms.FindAsync(roomId);
+        Rooms room = await _context.rooms.FindAsync(roomId);
 
         if (room == null)
         {
             return NotFound("Room not found");
         }
 
-        _context.Rooms.Remove(room);
+        _context.rooms.Remove(room);
         await _context.SaveChangesAsync();
         return Ok(room);
     }

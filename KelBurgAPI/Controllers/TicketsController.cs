@@ -33,7 +33,7 @@ public class TicketsController : ControllerBase
             Status = ticket.Status,
         };
         
-        _context.Tickets.Add(newTicket);
+        _context.tickets.Add(newTicket);
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetTickets), new { id = newTicket.Id }, newTicket);
     }
@@ -46,7 +46,7 @@ public class TicketsController : ControllerBase
             return BadRequest("PageNumber and size must be greater than 0");
         }
         
-        IQueryable<Tickets> query = _context.Tickets.AsQueryable();
+        IQueryable<Tickets> query = _context.tickets.AsQueryable();
 
         if (ticketId.HasValue)
         {
@@ -78,7 +78,7 @@ public class TicketsController : ControllerBase
     [HttpPatch("updateStatus")]
     public async Task<ActionResult<Tickets>> UpdateTicketStatus(int ticketId, string newStatus)
     {
-        Tickets ticketToUpdate = await _context.Tickets.FindAsync(ticketId);
+        Tickets ticketToUpdate = await _context.tickets.FindAsync(ticketId);
 
         if (ticketToUpdate == null)
         {
@@ -93,14 +93,14 @@ public class TicketsController : ControllerBase
     [HttpDelete("delete")]
     public async Task<ActionResult<Tickets>> DeleteTicket(int ticketId)
     {
-        Tickets ticketToDelete = await _context.Tickets.FindAsync(ticketId);
+        Tickets ticketToDelete = await _context.tickets.FindAsync(ticketId);
 
         if (ticketToDelete == null)
         {
             return NotFound("Ticket not found");
         }
         
-        _context.Tickets.Remove(await _context.Tickets.FindAsync(ticketId));
+        _context.tickets.Remove(await _context.tickets.FindAsync(ticketId));
         await _context.SaveChangesAsync();
         return Ok(ticketToDelete);
     }

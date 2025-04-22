@@ -52,7 +52,7 @@ public class UsersController : ControllerBase
             return BadRequest("User is null");
         }
         
-        if (await _context.Users.AnyAsync(u => u.Email == user.Email))
+        if (await _context.users.AnyAsync(u => u.Email == user.Email))
         {
             return Conflict(new { message = "Email is already in use." });
         }
@@ -77,7 +77,7 @@ public class UsersController : ControllerBase
             AccountType = user.AccountType,
         };
         
-        _context.Users.Add(newUser);
+        _context.users.Add(newUser);
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetUsers), new { id = newUser.Id }, newUser );
     }
@@ -91,7 +91,7 @@ public class UsersController : ControllerBase
             return BadRequest("PageNumber and size must be greater than 0");
         }
         
-        IQueryable<Users> query = _context.Users.AsQueryable();
+        IQueryable<Users> query = _context.users.AsQueryable();
 
         if (userId.HasValue)
         {
@@ -135,7 +135,7 @@ public class UsersController : ControllerBase
             return Unauthorized("Invalid token");
         }
 
-        Users? user = await _context.Users.FindAsync(int.Parse(userId));
+        Users? user = await _context.users.FindAsync(int.Parse(userId));
 
         if (user == null)
         {
@@ -148,7 +148,7 @@ public class UsersController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(UserLoginDTO login)
     {
-        Users user = await _context.Users.SingleOrDefaultAsync(u => u.Email == login.Email);
+        Users user = await _context.users.SingleOrDefaultAsync(u => u.Email == login.Email);
         if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.HashedPassword))
         {
             return Unauthorized(new { message = "Invalid email or password." });
@@ -202,14 +202,14 @@ public class UsersController : ControllerBase
     [HttpDelete("delete")]
     public async Task<ActionResult<Users>> DeleteUser(int userId)
     {
-        Users user = await _context.Users.FindAsync(userId);
+        Users user = await _context.users.FindAsync(userId);
         
         if (user == null)
         {
             return NotFound("User not found");
         }
         
-        _context.Users.Remove(user);
+        _context.users.Remove(user);
         await _context.SaveChangesAsync();
         return Ok(user);
     }

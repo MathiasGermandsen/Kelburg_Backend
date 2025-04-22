@@ -24,8 +24,8 @@ public class PaymentController : ControllerBase
     [HttpPost("checkout")]
     public ActionResult CreateCheckoutSession(Bookings booking)
     {
-        Rooms selectedRoom = _context.Rooms.Find(booking.RoomId);
-        Services selectedService = _context.Services.Find(booking.ServiceId);
+        Rooms selectedRoom = _context.rooms.Find(booking.RoomId);
+        Services selectedService = _context.services.Find(booking.ServiceId);
         ServicePaymentDTO mappedService = new ServicePaymentDTO();
 
         mappedService = new ServicePaymentDTO()
@@ -43,7 +43,7 @@ public class PaymentController : ControllerBase
                     ? "Dinner" : mappedService.BreakfastAndDinner 
                         ? "Breakfast and Dinner" : "No Service";
             
-        HotelCars car = _context.HotelCars.Find(booking.CarId);
+        HotelCars car = _context.hotelcars.Find(booking.CarId);
         
         Session? session = _paymentService.CreateCheckoutSession(booking, selectedRoom, mappedService, car);
         return Ok(session.Url);

@@ -36,7 +36,7 @@ namespace KelBurgAPI.Controllers
                 Size = hotelCars.Size,
                 Type = hotelCars.Type,
             };
-            _context.HotelCars.Add(carsToBeCreated);
+            _context.hotelcars.Add(carsToBeCreated);
             await _context.SaveChangesAsync();  
             return carsToBeCreated;
         }
@@ -49,7 +49,7 @@ namespace KelBurgAPI.Controllers
                 return BadRequest("PageNumber and size must be greater than 0");
             }
         
-            IQueryable<HotelCars> query = _context.HotelCars.AsQueryable();
+            IQueryable<HotelCars> query = _context.hotelcars.AsQueryable();
 
             if (carId.HasValue)
             {
@@ -72,8 +72,8 @@ namespace KelBurgAPI.Controllers
         [HttpGet("availableBetweenDates")]
         public async Task<ActionResult<IEnumerable<HotelCars>>> GetAvailableBetweenDates(DateTime startDate, DateTime endDate, int? carSize, int pageSize = 100, int pageNumber = 1)
         {
-            List<HotelCars> allCars = await _context.HotelCars.ToListAsync();
-            List<Bookings> allBookings = await _context.Booking.ToListAsync();
+            List<HotelCars> allCars = await _context.hotelcars.ToListAsync();
+            List<Bookings> allBookings = await _context.booking.ToListAsync();
 
             List<HotelCars> availableCars = allCars
                 .Where(car =>
@@ -94,14 +94,14 @@ namespace KelBurgAPI.Controllers
         [HttpDelete("delete")]
         public async Task<ActionResult<Bookings>> DeleteCar(int carId)
         {
-            HotelCars carToDelete = await _context.HotelCars.FindAsync(carId);
+            HotelCars carToDelete = await _context.hotelcars.FindAsync(carId);
 
             if (carToDelete == null)
             {
                 return NotFound("Car not found");
             }
 
-            _context.HotelCars.Remove(await _context.HotelCars.FindAsync(carId));
+            _context.hotelcars.Remove(await _context.hotelcars.FindAsync(carId));
             await _context.SaveChangesAsync();
             return Ok(carToDelete);
         }

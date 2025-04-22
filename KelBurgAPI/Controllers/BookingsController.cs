@@ -38,11 +38,11 @@ public class BookingsController : ControllerBase
             CarId = booking.CarId,
         };
 
-        List<Bookings> allExistingBookings = _context.Booking.ToList();
+        List<Bookings> allExistingBookings = _context.booking.ToList();
         Rooms roomInstance = new Rooms();
 
-        Rooms selectedRoom = _context.Rooms.Find(booking.RoomId);
-        HotelCars selectedCar = _context.HotelCars.Find(booking.CarId);
+        Rooms selectedRoom = _context.rooms.Find(booking.RoomId);
+        HotelCars selectedCar = _context.hotelcars.Find(booking.CarId);
 
         bool RoomAvailableAtDate = true;
         bool CarAvailableAtDate = true;
@@ -70,12 +70,12 @@ public class BookingsController : ControllerBase
             return BadRequest($"Car is not available at this date");
         }
 
-        List<Services> servicePricesDicts = _context.Services.ToList();
+        List<Services> servicePricesDicts = _context.services.ToList();
 
         bookingToBeCreated.BookingPrice =
             bookingToBeCreated.CalculateBookingPrice(bookingToBeCreated, selectedRoom, selectedCar, servicePricesDicts);
         
-        _context.Booking.Add(bookingToBeCreated);
+        _context.booking.Add(bookingToBeCreated);
         await _context.SaveChangesAsync();        
         return CreatedAtAction(nameof(GetBookings), new { id = bookingToBeCreated.Id }, bookingToBeCreated);
     }
@@ -88,7 +88,7 @@ public class BookingsController : ControllerBase
             return BadRequest("PageNumber and size must be greater than 0");
         }
         
-        IQueryable<Bookings> query = _context.Booking.AsQueryable();
+        IQueryable<Bookings> query = _context.booking.AsQueryable();
 
         if (bookingId.HasValue)
         {
@@ -114,16 +114,16 @@ public class BookingsController : ControllerBase
     [HttpPut("update")]
     public async Task<ActionResult<Bookings>> EditBooking(int bookingIdToChange, int carId, int serviceId)
     {
-        Bookings bookingToEdit = await _context.Booking.FindAsync(bookingIdToChange);
+        Bookings bookingToEdit = await _context.booking.FindAsync(bookingIdToChange);
         
-        HotelCars changedCar = await _context.HotelCars.FindAsync(carId);
+        HotelCars changedCar = await _context.hotelcars.FindAsync(carId);
         
-        List<Services> services = await _context.Services.ToListAsync();
+        List<Services> services = await _context.services.ToListAsync();
         
         bookingToEdit.CarId = carId;
         bookingToEdit.ServiceId = serviceId;
        
-        bookingToEdit.BookingPrice = bookingToEdit.CalculateBookingPrice(bookingToEdit, await _context.Rooms.FindAsync(bookingToEdit.RoomId), changedCar, services);
+        bookingToEdit.BookingPrice = bookingToEdit.CalculateBookingPrice(bookingToEdit, await _context.rooms.FindAsync(bookingToEdit.RoomId), changedCar, services);
 
         await _context.SaveChangesAsync();
         return Ok(bookingToEdit);
@@ -132,14 +132,14 @@ public class BookingsController : ControllerBase
     [HttpDelete("delete")]
     public async Task<ActionResult<Bookings>> DeleteBooking(int bookingId)
     {
-        Bookings bookingsToDelete = await _context.Booking.FindAsync(bookingId);
+        Bookings bookingsToDelete = await _context.booking.FindAsync(bookingId);
 
         if (bookingsToDelete == null)
         {
             return NotFound("Booking not found");
         }
 
-        _context.Booking.Remove(await _context.Booking.FindAsync(bookingId));
+        _context.booking.Remove(await _context.booking.FindAsync(bookingId));
         await _context.SaveChangesAsync();
         return Ok(bookingsToDelete);
     }

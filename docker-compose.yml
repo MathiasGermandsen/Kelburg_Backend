@@ -31,11 +31,18 @@ services:
       JwtSettings__Key: /run/secrets/Key
       JwtSettings__Issuer: /run/secrets/Issuer
       JwtSettings__Audience: /run/secrets/Audience
+      SecretApiKey: /run/secrets/SecretApiKey
+      CancelUrl: /run/secrets/SecretApiKey
+      SuccessUrl: /run/secrets/SecretApiKey
+      
     secrets:
-      - DefaultConnection
-      - Key
-      - Issuer
-      - Audience
+    - DefaultConnection
+    - Key
+    - Issuer
+    - Audience
+    - SecretApiKey
+    - CancelUrl
+    - SuccessUrl
     depends_on:
       - db
     ports:
@@ -54,6 +61,12 @@ secrets:
     Issuer:
       external: true
     Audience:
+      external: true
+    SecretApiKey:
+      external: true
+    CancelUrl:
+      external: true
+    SuccessUrl:
       external: true
 
 volumes:

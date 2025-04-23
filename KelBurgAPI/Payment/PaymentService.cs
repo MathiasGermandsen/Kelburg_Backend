@@ -11,9 +11,9 @@ public class PaymentService : IPaymentService
     public PaymentService(IConfiguration configuration)
     {
         _configuration = configuration;
-        StripeConfiguration.ApiKey = SecretHelper.GetSecretValue(_configuration["Stripe:SecretApiKey"]);
+        StripeConfiguration.ApiKey = SecretHelper.GetSecretValue(_configuration["SecretApiKey"]);
     }
-
+    
     public Session CreateCheckoutSession(Bookings booking, Rooms room, ServicePaymentDTO service, HotelCars car)
     {
         string description = $"Room: {room.RoomType} | Room View: {room.ViewType} | {booking.PeopleCount} Occupants" +
@@ -40,8 +40,8 @@ public class PaymentService : IPaymentService
         {
             LineItems = lineItems,
             Mode = "payment",
-            SuccessUrl = SecretHelper.GetSecretValue(_configuration["Stripe:SuccessUrl"]),
-            CancelUrl = SecretHelper.GetSecretValue(_configuration["Stripe:CancelUrl"]),
+            SuccessUrl = SecretHelper.GetSecretValue(_configuration["SuccessUrl"]),
+            CancelUrl = SecretHelper.GetSecretValue(_configuration["CancelUrl"]),
         };
 
         SessionService sessionService = new SessionService();

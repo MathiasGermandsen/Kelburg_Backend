@@ -46,6 +46,9 @@ public class PaymentController : ControllerBase
         HotelCars car = _context.hotelcars.Find(booking.CarId);
         
         Session? session = _paymentService.CreateCheckoutSession(booking, selectedRoom, mappedService, car);
+        
+        Console.WriteLine(session.Url);
+        
         return Ok(session.Url);
     }
 }

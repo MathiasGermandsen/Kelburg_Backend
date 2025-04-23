@@ -32,8 +32,8 @@ services:
       JwtSettings__Issuer: /run/secrets/Issuer
       JwtSettings__Audience: /run/secrets/Audience
       SecretApiKey: /run/secrets/SecretApiKey
-      CancelUrl: /run/secrets/SecretApiKey
-      SuccessUrl: /run/secrets/SecretApiKey
+      CancelUrl: /run/secrets/CancelUrl
+      SuccessUrl: /run/secrets/SuccessUrl
       
     secrets:
     - DefaultConnection

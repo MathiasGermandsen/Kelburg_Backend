@@ -1,7 +1,12 @@
 ﻿version: '3.8'
 
 services:
-  
+  kelburg_frontend:
+    image: kelburg_frontend:latest
+    ports:
+      - "13000:13000"
+    environment:
+      - ASPNETCORE_URLS=http://+:13000
   db_new:
     image: postgres:17.4-alpine
     environment:

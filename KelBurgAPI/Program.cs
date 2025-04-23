@@ -6,7 +6,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using KelBurgAPI.Payment;
 using Microsoft.EntityFrameworkCore.Storage;
-
+using Microsoft.AspNetCore.DataProtection;
 namespace KelBurgAPI
 {
     public class Program
@@ -43,6 +43,9 @@ namespace KelBurgAPI
             });
             
             builder.Services.AddScoped<IPaymentService, PaymentService>();
+            
+            builder.Services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo("/var/data-protection-keys"));
 
             IConfiguration Configuration = builder.Configuration;
             

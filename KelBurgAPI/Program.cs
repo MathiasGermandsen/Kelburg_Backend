@@ -117,6 +117,7 @@ namespace KelBurgAPI
         {
             using (var scope = app.Services.CreateScope())
             {
+                Console.WriteLine("Applying Migrations");
                 DatabaseContext dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
                 dbContext.Database.Migrate();
             }

@@ -14,7 +14,7 @@ public class PaymentController : ControllerBase
 {
     private readonly IPaymentService _paymentService;
     private readonly DatabaseContext _context;
-    private readonly LogService _logService;
+    private readonly LogService _logService = new LogService();
     
     public PaymentController(IPaymentService paymentService, DatabaseContext context)
     {
@@ -58,8 +58,9 @@ public class PaymentController : ControllerBase
             _logService.LogMessageWithFrame(session.Url);
             return Ok(session.Url);
         }
-        catch
+        catch (Exception ex)
         {
+            _logService.LogMessageWithFrame(ex.Message);
             return BadRequest();
         }
     }

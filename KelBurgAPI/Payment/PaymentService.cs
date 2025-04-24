@@ -40,8 +40,8 @@ public class PaymentService : IPaymentService
         {
             LineItems = lineItems,
             Mode = "payment",
-            SuccessUrl = SecretHelper.GetSecretValue(_configuration["SuccessUrl"]),
-            CancelUrl = SecretHelper.GetSecretValue(_configuration["CancelUrl"]),
+            SuccessUrl = "http://10.133.51.102:13000/bookingSuccess",
+            CancelUrl = "http://10.133.51.102:13000/rooms",
         };
 
         SessionService sessionService = new SessionService();

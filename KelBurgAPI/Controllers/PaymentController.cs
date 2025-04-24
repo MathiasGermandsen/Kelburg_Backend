@@ -14,6 +14,7 @@ public class PaymentController : ControllerBase
 {
     private readonly IPaymentService _paymentService;
     private readonly DatabaseContext _context;
+    private readonly LogService _logService;
     
     public PaymentController(IPaymentService paymentService, DatabaseContext context)
     {
@@ -24,31 +25,42 @@ public class PaymentController : ControllerBase
     [HttpPost("checkout")]
     public ActionResult CreateCheckoutSession(Bookings booking)
     {
-        Rooms selectedRoom = _context.rooms.Find(booking.RoomId);
-        Services selectedService = _context.services.Find(booking.ServiceId);
-        ServicePaymentDTO mappedService = new ServicePaymentDTO();
-
-        mappedService = new ServicePaymentDTO()
+        try
         {
-            AllInclusive = selectedService.AllInclusive,
-            Breakfast = selectedService.Breakfast,
-            Dinner = selectedService.Dinner,
-            BreakfastAndDinner = selectedService.BreakfastAndDinner,
-            PricePrPersonPrNight = selectedService.PricePrPersonPrNight,
-        };
-    
-        mappedService.PrettyName = mappedService.AllInclusive 
-            ? "All Inclusive" : mappedService.Breakfast 
-                ? "Breakfast" : mappedService.Dinner 
-                    ? "Dinner" : mappedService.BreakfastAndDinner 
-                        ? "Breakfast and Dinner" : "No Service";
-            
-        HotelCars car = _context.hotelcars.Find(booking.CarId);
-        
-        Session? session = _paymentService.CreateCheckoutSession(booking, selectedRoom, mappedService, car);
-        
-        Console.WriteLine(session.Url);
-        
-        return Ok(session.Url);
+            Rooms selectedRoom = _context.rooms.Find(booking.RoomId);
+            Services selectedService = _context.services.Find(booking.ServiceId);
+            ServicePaymentDTO mappedService = new ServicePaymentDTO();
+
+            mappedService = new ServicePaymentDTO()
+            {
+                AllInclusive = selectedService.AllInclusive,
+                Breakfast = selectedService.Breakfast,
+                Dinner = selectedService.Dinner,
+                BreakfastAndDinner = selectedService.BreakfastAndDinner,
+                PricePrPersonPrNight = selectedService.PricePrPersonPrNight,
+            };
+
+            mappedService.PrettyName = mappedService.AllInclusive
+                ? "All Inclusive"
+                : mappedService.Breakfast
+                    ? "Breakfast"
+                    : mappedService.Dinner
+                        ? "Dinner"
+                        : mappedService.BreakfastAndDinner
+                            ? "Breakfast and Dinner"
+                            : "No Service";
+
+            HotelCars car = _context.hotelcars.Find(booking.CarId);
+
+            Session? session = _paymentService.CreateCheckoutSession(booking, selectedRoom, mappedService, car);
+
+            _logService.LogMessageWithFrame(session.Url);
+            return Ok(session.Url);
+        }
+        catch (Exception ex)
+        {
+            _logService.LogErrorWithFrame(ex.Message);
+            return BadRequest();
+        }
     }
 }

@@ -25,6 +25,7 @@ public class PaymentController : ControllerBase
     [HttpPost("checkout")]
     public ActionResult CreateCheckoutSession(Bookings booking)
     {
+        _logService.LogMessageWithFrame("Create Checkout Initiated...");
         try
         {
             Rooms selectedRoom = _context.rooms.Find(booking.RoomId);
@@ -57,9 +58,8 @@ public class PaymentController : ControllerBase
             _logService.LogMessageWithFrame(session.Url);
             return Ok(session.Url);
         }
-        catch (Exception ex)
+        catch
         {
-            _logService.LogErrorWithFrame(ex.Message);
             return BadRequest();
         }
     }

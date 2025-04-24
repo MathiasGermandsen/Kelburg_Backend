@@ -4,6 +4,7 @@ using KelBurgAPI.Payment;
 using Microsoft.AspNetCore.Mvc;
 using Stripe.Checkout;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace KelBurgAPI.Controllers;
 
@@ -54,7 +55,12 @@ public class PaymentController : ControllerBase
             HotelCars car = _context.hotelcars.Find(booking.CarId);
 
             Session? session = _paymentService.CreateCheckoutSession(booking, selectedRoom, mappedService, car);
-
+            
+            _logService.LogMessageWithFrame(JsonSerializer.Serialize(booking));
+            _logService.LogMessageWithFrame(JsonSerializer.Serialize(selectedRoom));
+            _logService.LogMessageWithFrame(JsonSerializer.Serialize(mappedService));
+            _logService.LogMessageWithFrame(JsonSerializer.Serialize(car));
+            
             _logService.LogMessageWithFrame(session.Url);
             return Ok(session.Url);
         }

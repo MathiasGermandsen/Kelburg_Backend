@@ -145,10 +145,10 @@ public class UsersController : ControllerBase
     }
     
     [HttpPost("login")]
-    public async Task<IActionResult> Login(UserLoginDTO login)
+    public async Task<IActionResult> Login(string email, string password)
     {
-        Users user = await _context.users.SingleOrDefaultAsync(u => u.Email == login.Email);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.HashedPassword))
+        Users user = await _context.users.SingleOrDefaultAsync(u => u.Email == email);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.HashedPassword))
         {
             return Unauthorized(new { message = "Invalid email or password." });
         }
@@ -192,7 +192,7 @@ public class UsersController : ControllerBase
             jwtIssuer,
             jwtAudience,
             claims,
-            expires: DateTime.Now.AddMinutes(30),
+            expires: DateTime.Now.AddMinutes(60),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
